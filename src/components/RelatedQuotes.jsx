@@ -1,7 +1,7 @@
 import { Box, Button } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
 import { useEffect, useState } from "react";
 import TableComponent from "./TableComponent";
+import CreateQuotes from "./CreateQuotes";
 
 const RelatedQuotes = ({ moduleName, recordId }) => {
   const [relatedQuotes, setRelatedQuotes] = useState([]);
@@ -29,12 +29,13 @@ const RelatedQuotes = ({ moduleName, recordId }) => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          mb: 3,
         }}
       >
         <h3>Related Quotes</h3>
-        <Button variant="outlined" startIcon={<AddIcon />}>
-          Create Quote
-        </Button>
+
+        {/* Create Quotes button */}
+        <CreateQuotes />
       </Box>
 
       <TableComponent relatedQuotes={relatedQuotes} />
