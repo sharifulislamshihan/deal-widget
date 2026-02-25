@@ -105,7 +105,7 @@ const CreateQuotes = ({ recordId }) => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    console.log("Checking submission", subject, quotesStage, carrier, products);
+    // console.log("Checking submission", subject, quotesStage, carrier, products);
     
     window.ZOHO.CRM.API.insertRecord({
       Entity: "Quotes",
@@ -115,9 +115,7 @@ const CreateQuotes = ({ recordId }) => {
       console.log(data.data);
       if (data.data[0].code === "SUCCESS") {
         alert("Record created successfully!");
-        window.ZOHO.CRM.UI.Popup.closeReload().then(function (data) {
-          console.log(data);
-        });
+        
       } else {
         alert("Failed to create record.");
       }

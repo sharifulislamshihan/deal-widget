@@ -34,7 +34,9 @@ const TableComponent = ({ relatedQuotes }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {relatedQuotes.map((relatedQuote) => (
+          {
+          relatedQuotes && relatedQuotes.length > 0 ? (
+            relatedQuotes.map((relatedQuote) => (
             <TableRow
               key={relatedQuote.id}
               sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
@@ -55,7 +57,14 @@ const TableComponent = ({ relatedQuotes }) => {
                 </Button>
               </TableCell>
             </TableRow>
-          ))}
+          ))
+          ) 
+          : 
+          (
+            <h2 align="center">No quotes available</h2>
+          )
+          
+          }
         </TableBody>
       </Table>
     </TableContainer>
