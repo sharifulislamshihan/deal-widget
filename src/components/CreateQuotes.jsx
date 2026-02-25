@@ -10,17 +10,19 @@ import InputLabel from "@mui/material/InputLabel";
 import Select from "@mui/material/Select";
 import { useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
-import { Box } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
+import { Box, Stack } from "@mui/material";
 
-const CreateQuotes = () => {
+const CreateQuotes = ({ recordId }) => {
+
+  //console.log("Create Quotes Record ID:", recordId);
   const [open, setOpen] = useState(false);
   const [subject, setSubject] = useState("");
   const [quotesStage, setQuotesStage] = useState("");
   const [carrier, setCarrier] = useState("");
-  const [productName, setProductName] = useState("");
-  const [quantity, setQuantity] = useState("");
   const [products, setProducts] = useState([]);
-
+  const [productsData, setProductsData] = useState([]);
 
   const quotesStages = [
     "Draft",
@@ -40,11 +42,36 @@ const CreateQuotes = () => {
       sort_order: "asc",
     }).then(function (data) {
       console.log("Product records:", data.data);
-      setProducts(data.data);
+      setProductsData(data.data);
     });
   };
 
-  console.log("checking products state working", products);
+  const handleAddProduct = () => {
+    setProducts((prevProducts) => [
+      ...prevProducts,
+      { id: Date.now(), productId: "", quantity: 1 },
+    ]);
+  };
+
+  const handleProductChange = (id, field, value) => {
+    setProducts((prevProducts) =>
+      prevProducts.map((product) => {
+        if (product.id === id) {
+          return { ...product, [field]: value };
+        }
+        return product;
+      }),
+    );
+  };
+
+  const handleRemoveProduct = (id) => {
+    setProducts((prevProducts) =>
+      prevProducts.filter((product) => product.id !== id),
+    );
+  };
+
+  console.log("checking products state working", products.length);
+
 
   const handleClose = () => {
     setOpen(false);
@@ -52,33 +79,34 @@ const CreateQuotes = () => {
     setSubject("");
     setQuotesStage("");
     setCarrier("");
-    setProductName("");
-    setQuantity("");
   };
+
   var recordData = {
     Deal_Name: {
-      id: "6636267000030388002",
+      id: recordId,
     },
-    Carrier: "FedEX",
-    Quote_Stage: "Draft",
-    Subject: "Testing 6",
-    id: "6636267000030515105",
-    Product_Details: [
-      {
-        product: {
-          name: "papaya",
-          id: "6636267000030324052",
-        },
-
-        quantity: 1,
-        list_price: 25,
-      },
-    ],
+    Carrier: carrier,
+    Quote_Stage: quotesStage,
+    Subject: subject,
+    Product_Details: [],
   };
+
+  products.forEach((prod, index) => {
+    recordData.Product_Details[index] = {
+      product: {
+        id: prod.productId,
+      },
+      quantity: prod.quantity,
+    };
+  });
+
+  //console.log("Final record data to submit:", recordData);
+  
 
   const handleSubmit = (event) => {
     event.preventDefault();
-
+    console.log("Checking submission", subject, quotesStage, carrier, products);
+    
     window.ZOHO.CRM.API.insertRecord({
       Entity: "Quotes",
       APIData: recordData,
@@ -106,7 +134,7 @@ const CreateQuotes = () => {
       >
         Create Quote
       </Button>
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>Create New Quote</DialogTitle>
         <DialogContent>
           <form onSubmit={handleSubmit} id="quote-form">
@@ -124,77 +152,118 @@ const CreateQuotes = () => {
               onChange={(e) => setSubject(e.target.value)}
             />
 
-            <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-              {/* Quotes Stage */}
-              <FormControl fullWidth variant="standard" required>
-                <InputLabel id="quotes-stage-label">Quotes Stage</InputLabel>
-                <Select
-                  labelId="quotes-stage-label"
-                  id="quotes-stage"
-                  name="quotesStage"
-                  value={quotesStage}
-                  onChange={(e) => setQuotesStage(e.target.value)}
-                  label="Quotes Stage"
-                >
-                  {quotesStages.map((stage) => (
-                    <MenuItem key={stage} value={stage}>
-                      {stage}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              {/* Carrier */}
-              <FormControl fullWidth variant="standard" required>
-                <InputLabel id="carrier-label">Carrier</InputLabel>
-                <Select
-                  labelId="carrier-label"
-                  id="carrier"
-                  name="carrier"
-                  value={carrier}
-                  onChange={(e) => setCarrier(e.target.value)}
-                  label="Carrier"
-                >
-                  {carriers.map((c) => (
-                    <MenuItem key={c} value={c}>
-                      {c}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-
-            {/* Products */}
-            <FormControl margin="dense" fullWidth variant="standard" required>
-              <InputLabel id="products">Product Name</InputLabel>
+            {/* Quotes Stage */}
+            <FormControl fullWidth margin="dense" variant="standard" required>
+              <InputLabel id="quotes-stage-label">Quotes Stage</InputLabel>
               <Select
-                labelId="products"
-                id="product-name"
-                name="productName"
-                value={productName}
-                onChange={(e) => setProductName(e.target.value)}
-                label="Product Name"
+                labelId="quotes-stage-label"
+                id="quotes-stage"
+                name="quotesStage"
+                value={quotesStage}
+                onChange={(e) => setQuotesStage(e.target.value)}
+                label="Quotes Stage"
               >
-                {products.map((product) => (
-                  <MenuItem key={product.id} value={product.Product_Name}>
-                    {product.Product_Name}
+                {quotesStages.map((stage) => (
+                  <MenuItem key={stage} value={stage}>
+                    {stage}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
 
-            <TextField
-              required
-              margin="dense"
-              id="quantity"
-              name="quantity"
-              label="Quantity"
-              type="number"
-              fullWidth
-              variant="standard"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-            />
+            {/* Carrier */}
+            <FormControl fullWidth margin="dense" variant="standard" required>
+              <InputLabel id="carrier-label">Carrier</InputLabel>
+              <Select
+                labelId="carrier-label"
+                id="carrier"
+                name="carrier"
+                value={carrier}
+                onChange={(e) => setCarrier(e.target.value)}
+                label="Carrier"
+              >
+                {carriers.map((c) => (
+                  <MenuItem key={c} value={c}>
+                    {c}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <Box sx={{ mt: 3, mb: 2 }}>
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <DialogTitle sx={{ p: 0 }}>Products</DialogTitle>
+                <IconButton
+                  color="primary"
+                  onClick={handleAddProduct}
+                  aria-label="Add product"
+                >
+                  <AddIcon />
+                </IconButton>
+              </Stack>
+
+              {products.map((product) => (
+                console.log("checking for poe", product),
+                <Stack
+                  key={product.id}
+                  direction="row"
+                  spacing={2}
+                  alignItems="center"
+                  sx={{ mb: 1 }}
+                >
+                  <FormControl fullWidth required>
+                    <InputLabel id={`product-select-label-${product.id}`}>
+                      Product Name
+                    </InputLabel>
+                    <Select
+                      labelId={`product-select-label-${product.id}`}
+                      value={product.productId}
+                      label="Product Name"
+                      onChange={(e) =>
+                        handleProductChange(
+                          product.id,
+                          "productId",
+                          e.target.value,
+                        )
+                      }
+                    >
+                      {productsData.map((prod) => (
+                        <MenuItem key={prod.id} value={prod.id}>
+                          {prod.Product_Name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    required
+                    label="Quantity"
+                    type="number"
+                    value={product.quantity}
+                    onChange={(e) =>
+                      handleProductChange(
+                        product.id,
+                        "quantity",
+                        Number(e.target.value),
+                      )
+                    }
+                    inputProps={{ min: 1 }}
+                    sx={{ width: 120 }}
+                  />
+                  <IconButton
+                    color="error"
+                    onClick={() => handleRemoveProduct(product.id)}
+                    aria-label="Remove product"
+                    disabled={products.length === 1}
+                  >
+                    <RemoveCircleOutlineIcon />
+                  </IconButton>
+                </Stack>
+              ))}
+            </Box>
           </form>
         </DialogContent>
         <DialogActions>

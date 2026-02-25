@@ -6,7 +6,7 @@ import CreateQuotes from "./CreateQuotes";
 const RelatedQuotes = ({ moduleName, recordId }) => {
   const [relatedQuotes, setRelatedQuotes] = useState([]);
   console.log(moduleName);
-  console.log(recordId);
+  console.log("related quotes recordId:", recordId);
 
   useEffect(() => {
     if (moduleName && recordId) {
@@ -35,7 +35,7 @@ const RelatedQuotes = ({ moduleName, recordId }) => {
         <h3>Related Quotes</h3>
 
         {/* Create Quotes button */}
-        <CreateQuotes />
+        <CreateQuotes recordId={recordId} />
       </Box>
 
       <TableComponent relatedQuotes={relatedQuotes} />
