@@ -6,15 +6,18 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TablePagination from "@mui/material/TablePagination";
 import Paper from "@mui/material/Paper";
-import { Button } from "@mui/material";
+import { Button, IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useState } from "react";
+import EditQuotes from "./EditQuotes";
+import { Edit } from "@mui/icons-material";
 
 const TableComponent = ({ relatedQuotes }) => {
   console.log("Related Quotes in table", relatedQuotes);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [editQuoteId, setEditQuoteId] = useState(null);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -24,6 +27,12 @@ const TableComponent = ({ relatedQuotes }) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
+
+  const handleEditQuotes = (id) => {
+    console.log("Edit quote with ID:", id);
+    setEditQuoteId(id);
+  };
+  console.log("Checking edit id", editQuoteId);
 
   return (
     <Paper>
@@ -67,13 +76,16 @@ const TableComponent = ({ relatedQuotes }) => {
                     </TableCell>
                     <TableCell align="center">{relatedQuote.Carrier}</TableCell>
                     <TableCell align="center">
-                      <Button size="small">
-                        <EditIcon />
-                      </Button>
+                      <EditQuotes 
+                      editQuoteId={editQuoteId}
+                      quote={relatedQuote}
+                      onClick={() => handleEditQuotes(relatedQuote.id)} />
+                      
 
-                      <Button color="error" size="small">
+                    
+                     <IconButton color="error" size="small">
                         <DeleteIcon />
-                      </Button>
+                      </IconButton>
                     </TableCell>
                   </TableRow>
                 ))
