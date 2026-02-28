@@ -7,11 +7,11 @@ import TableRow from "@mui/material/TableRow";
 import TablePagination from "@mui/material/TablePagination";
 import Paper from "@mui/material/Paper";
 import { Button, IconButton } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useState } from "react";
 import EditQuotes from "./EditQuotes";
 import { Edit } from "@mui/icons-material";
+import DeleteRecord from "./DeleteRecord";
 
 const TableComponent = ({ relatedQuotes }) => {
   console.log("Related Quotes in table", relatedQuotes);
@@ -76,23 +76,22 @@ const TableComponent = ({ relatedQuotes }) => {
                     </TableCell>
                     <TableCell align="center">{relatedQuote.Carrier}</TableCell>
                     <TableCell align="center">
+
+                      {/* Edit a record */}
                       <EditQuotes 
                       editQuoteId={editQuoteId}
                       quote={relatedQuote}
                       onClick={() => handleEditQuotes(relatedQuote.id)} />
-                      
 
-                    
-                     <IconButton color="error" size="small">
-                        <DeleteIcon />
-                      </IconButton>
+                      {/* Delete a record */}
+                      <DeleteRecord />
                     </TableCell>
                   </TableRow>
                 ))
             ) : (
               <TableRow>
                 <TableCell align="center" colSpan={5}>
-                  No quotes available
+                  No quotes available.
                 </TableCell>
               </TableRow>
             )}

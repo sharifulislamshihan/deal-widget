@@ -14,7 +14,12 @@ import AddIcon from "@mui/icons-material/Add";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import { Box, Stack } from "@mui/material";
 const EditQuotes = ({ editQuoteId, onClick, quote }) => {
-  //console.log("Quotes", quote?.Subject);
+  //console.log("Quote data received in EditQuotes component:", quote);
+  // console.log("Subject", quote?.Subject);
+  // console.log("Quote Stage", quote?.Quote_Stage);
+  // console.log("Carrier", quote?.Carrier);
+  // console.log("Product Details", quote?.Product_Details);
+  
 
   // console.log("Checking id in edit quotes components", editQuoteId);
   const [open, setOpen] = useState(false);
@@ -42,7 +47,7 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
       Entity: "Products",
       sort_order: "asc",
     }).then(function (data) {
-      console.log("Product records:", data.data);
+      //console.log("Product records:", data.data);
       setProductsData(data.data);
     });
   };
@@ -53,52 +58,64 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
       { id: Date.now(), productId: "", quantity: 1 },
     ]);
   };
+  //console.log("Checking products", products);
+  
 
   const handleProductChange = (id, field, value) => {
+    console.log(id, field, value);
+    
     setProducts((prevProducts) =>
       prevProducts.map((product) => {
-        if (product.id === id) {
+        if (product?.id === id) {
           return { ...product, [field]: value };
         }
         return product;
       }),
     );
+    console.log("Checking products in handle product change", products);
   };
 
   const handleRemoveProduct = (id) => {
-    setProducts((prevProducts) =>
+    console.log("Checking products in remove products", products);
+    
+    setProducts((prevProducts) =>      
       prevProducts.filter((product) => product.id !== id),
     );
   };
 
-  console.log("checking products state working", products.length);
+  //console.log("checking products state working", products.length);
 
   const handleClose = () => {
     setOpen(false);
-    // Optionally reset form fields on close
     setSubject("");
     setQuotesStage("");
     setCarrier("");
   };
 
-  //   var recordData = {
-  //     Deal_Name: {
-  //       id: recordId,
-  //     },
-  //     Carrier: carrier,
-  //     Quote_Stage: quotesStage,
-  //     Subject: subject,
-  //     Product_Details: [],
-  //   };
+    var recordData = {
+      id: editQuoteId,
+      Deal_Name: {
+        id: quote.Deal_Name.id,
+      },
+      Carrier: carrier,
+      Quote_Stage: quotesStage,
+      Subject: subject,
+      Product_Details: [],
+    };
 
-  //   products.forEach((prod, index) => {
-  //     recordData.Product_Details[index] = {
-  //       product: {
-  //         id: prod.productId,
-  //       },
-  //       quantity: prod.quantity,
-  //     };
-  //   });
+    ///console.log("Checking prod in products", products);
+    products.forEach((prod, index) => {
+      console.log("Checking prod in products", prod);
+      recordData.Product_Details[index] = {
+        product: {
+          id: prod.productId || prod?.product?.id,
+        },
+        quantity: prod?.quantity,
+      };
+    });
+
+    console.log("Record Data", recordData);
+    
 
   //console.log("Final record data to submit:", recordData);
 
@@ -106,18 +123,18 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
     event.preventDefault();
     // console.log("Checking submission", subject, quotesStage, carrier, products);
 
-    // window.ZOHO.CRM.API.insertRecord({
-    //   Entity: "Quotes",
-    //   APIData: recordData,
-    //   Trigger: [],
-    // }).then(function (data) {
-    //   console.log(data.data);
-    //   if (data.data[0].code === "SUCCESS") {
-    //     alert("Record created successfully!");
-    //   } else {
-    //     alert("Failed to create record.");
-    //   }
-    // });
+    window.ZOHO.CRM.API.updateRecord({
+      Entity: "Quotes",
+      APIData: recordData,
+      Trigger: [],
+    }).then(function (data) {
+      console.log("Update response data:", data);
+      if (data.data[0].code === "SUCCESS") {
+        alert("Record updated successfully!");
+      } else {
+        alert("Failed to update record.");
+      }
+    });
     handleClose();
   };
 
@@ -214,22 +231,22 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
 
               {products.map(
                 (product) => (
-                  console.log("checking for poe", product),
+                console.log("checking for poe", product),
                   (
                     <Stack
-                      key={product.id}
+                      key={product?.id}
                       direction="row"
                       spacing={2}
                       alignItems="center"
                       sx={{ mb: 1 }}
                     >
                       <FormControl fullWidth required>
-                        <InputLabel id={`product-select-label-${product.id}`}>
+                        <InputLabel id={`product-select-label-${product?.id}`}>
                           Product Name
                         </InputLabel>
                         <Select
-                          labelId={`product-select-label-${product.id}`}
-                          value={product.productId}
+                          labelId={`product-select-label-${product?.id}`}
+                          value={product?.product?.id}
                           label="Product Name"
                           onChange={(e) =>
                             handleProductChange(
@@ -240,7 +257,7 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
                           }
                         >
                           {productsData.map((prod) => (
-                            console.log("prod", prod),
+                          //console.log("prod", prod.id),
                             
                             <MenuItem key={prod.id} value={prod.id}>
                               {prod.Product_Name}
@@ -252,7 +269,7 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
                         required
                         label="Quantity"
                         type="number"
-                        value={product.quantity}
+                        value={product?.quantity || ""}
                         onChange={(e) =>
                           handleProductChange(
                             product.id,
