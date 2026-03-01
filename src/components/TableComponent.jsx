@@ -18,6 +18,7 @@ const TableComponent = ({ relatedQuotes }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [editQuoteId, setEditQuoteId] = useState(null);
+  const [deleteQuoteId, setDeleteQuoteId] = useState(null);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -29,10 +30,16 @@ const TableComponent = ({ relatedQuotes }) => {
   };
 
   const handleEditQuotes = (id) => {
-    console.log("Edit quote with ID:", id);
+    //console.log("Edit quote with ID:", id);
     setEditQuoteId(id);
   };
-  console.log("Checking edit id", editQuoteId);
+  //console.log("Checking edit id", editQuoteId);
+
+  const handleDeleteQuote = (id) => {
+    console.log("Delete quote with ID:", id);
+    setDeleteQuoteId(id);
+  };
+  console.log("Delete quote with IDDDD:", deleteQuoteId);
 
   return (
     <Paper>
@@ -76,15 +83,18 @@ const TableComponent = ({ relatedQuotes }) => {
                     </TableCell>
                     <TableCell align="center">{relatedQuote.Carrier}</TableCell>
                     <TableCell align="center">
-
                       {/* Edit a record */}
-                      <EditQuotes 
-                      editQuoteId={editQuoteId}
-                      quote={relatedQuote}
-                      onClick={() => handleEditQuotes(relatedQuote.id)} />
+                      <EditQuotes
+                        editQuoteId={editQuoteId}
+                        quote={relatedQuote}
+                        onClick={() => handleEditQuotes(relatedQuote.id)}
+                      />
 
                       {/* Delete a record */}
-                      <DeleteRecord />
+                      <DeleteRecord
+                        quote={relatedQuote}
+                        onClick={() => handleDeleteQuote(relatedQuote.id)}
+                      />
                     </TableCell>
                   </TableRow>
                 ))

@@ -5,8 +5,8 @@ import CreateQuotes from "./CreateQuotes";
 
 const RelatedQuotes = ({ moduleName, recordId }) => {
   const [relatedQuotes, setRelatedQuotes] = useState([]);
-  console.log(moduleName);
-  console.log("related quotes recordId:", recordId);
+ // console.log(moduleName);
+  //console.log("related quotes recordId:", recordId);
 
   useEffect(() => {
     if (moduleName && recordId) {

@@ -8,8 +8,8 @@ const DealDetails = ({ moduleName, recordId }) => {
   const [contactName, setContactName] = useState("");
   const [accountName, setAccountName] = useState("");
   const [Amount, setAmount] = useState("");
-  console.log(moduleName);
-  console.log(recordId);
+ // console.log(moduleName);
+ // console.log(recordId);
 
   useEffect(() => {
     if (moduleName && recordId) {
@@ -17,7 +17,7 @@ const DealDetails = ({ moduleName, recordId }) => {
         Entity: moduleName,
         RecordID: recordId,
       }).then(function (recordData) {
-        console.log(recordData.data[0]);
+      //  console.log(recordData.data[0]);
 
         setDealName(recordData.data[0]?.Deal_Name);
         setContactName(recordData.data[0]?.Contact_Name?.name);

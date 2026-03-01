@@ -62,7 +62,7 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
   
 
   const handleProductChange = (id, field, value) => {
-    console.log(id, field, value);
+    //console.log(id, field, value);
     
     setProducts((prevProducts) =>
       prevProducts.map((product) => {
@@ -72,11 +72,11 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
         return product;
       }),
     );
-    console.log("Checking products in handle product change", products);
+   // console.log("Checking products in handle product change", products);
   };
 
   const handleRemoveProduct = (id) => {
-    console.log("Checking products in remove products", products);
+    //console.log("Checking products in remove products", products);
     
     setProducts((prevProducts) =>      
       prevProducts.filter((product) => product.id !== id),
@@ -105,7 +105,7 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
 
     ///console.log("Checking prod in products", products);
     products.forEach((prod, index) => {
-      console.log("Checking prod in products", prod);
+      //console.log("Checking prod in products", prod);
       recordData.Product_Details[index] = {
         product: {
           id: prod.productId || prod?.product?.id,
@@ -114,7 +114,7 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
       };
     });
 
-    console.log("Record Data", recordData);
+    //console.log("Record Data", recordData);
     
 
   //console.log("Final record data to submit:", recordData);
@@ -128,7 +128,7 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
       APIData: recordData,
       Trigger: [],
     }).then(function (data) {
-      console.log("Update response data:", data);
+     // console.log("Update response data:", data);
       if (data.data[0].code === "SUCCESS") {
         alert("Record updated successfully!");
       } else {
@@ -231,7 +231,7 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
 
               {products.map(
                 (product) => (
-                console.log("checking for poe", product),
+               // console.log("checking for poe", product),
                   (
                     <Stack
                       key={product?.id}

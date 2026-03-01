@@ -41,7 +41,7 @@ const CreateQuotes = ({ recordId }) => {
       Entity: "Products",
       sort_order: "asc",
     }).then(function (data) {
-      console.log("Product records:", data.data);
+      //console.log("Product records:", data.data);
       setProductsData(data.data);
     });
   };
@@ -70,7 +70,7 @@ const CreateQuotes = ({ recordId }) => {
     );
   };
 
-  console.log("checking products state working", products.length);
+ // console.log("checking products state working", products.length);
 
 
   const handleClose = () => {
@@ -112,7 +112,7 @@ const CreateQuotes = ({ recordId }) => {
       APIData: recordData,
       Trigger: [],
     }).then(function (data) {
-      console.log(data.data);
+     // console.log(data.data);
       if (data.data[0].code === "SUCCESS") {
         alert("Record created successfully!");
         
@@ -205,7 +205,7 @@ const CreateQuotes = ({ recordId }) => {
               </Stack>
 
               {products.map((product) => (
-                console.log("checking for poe", product),
+             //   console.log("checking for poe", product),
                 <Stack
                   key={product.id}
                   direction="row"
