@@ -6,20 +6,27 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TablePagination from "@mui/material/TablePagination";
 import Paper from "@mui/material/Paper";
-import { Button, IconButton } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EditQuotes from "./EditQuotes";
-import { Edit } from "@mui/icons-material";
 import DeleteRecord from "./DeleteRecord";
 
-const TableComponent = ({ relatedQuotes }) => {
-  console.log("Related Quotes in table", relatedQuotes);
+const TableComponent = ({ relatedQuotes, getQuotes }) => {
+  //console.log("Related Quotes in table", relatedQuotes.data);
+  // const [quotes, setquotes] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [editQuoteId, setEditQuoteId] = useState(null);
-  const [deleteQuoteId, setDeleteQuoteId] = useState(null);
 
+  // console.log("Related quotes in table content", relatedQuotes);
+  // console.log("module name in table content", moduleName);
+  // console.log("Record id in table content", recordId);
+  // console.log("Delete", deleteQuoteId);
+
+  useEffect(() => {
+    getQuotes();
+  }, [getQuotes]);
+
+  const quotes = relatedQuotes.data;
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -32,14 +39,15 @@ const TableComponent = ({ relatedQuotes }) => {
   const handleEditQuotes = (id) => {
     //console.log("Edit quote with ID:", id);
     setEditQuoteId(id);
+    getQuotes();
   };
   //console.log("Checking edit id", editQuoteId);
 
   const handleDeleteQuote = (id) => {
     console.log("Delete quote with ID:", id);
-    setDeleteQuoteId(id);
+    
+    getQuotes();
   };
-  console.log("Delete quote with IDDDD:", deleteQuoteId);
 
   return (
     <Paper>
@@ -64,36 +72,32 @@ const TableComponent = ({ relatedQuotes }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {relatedQuotes && relatedQuotes.length > 0 ? (
-              relatedQuotes
+            {quotes && quotes.length > 0 ? (
+              quotes
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((relatedQuote) => (
+                .map((quote) => (
                   <TableRow
-                    key={relatedQuote.id}
+                    key={quote.id}
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                   >
                     <TableCell component="th" scope="row">
-                      {relatedQuote.Subject}
+                      {quote.Subject}
                     </TableCell>
-                    <TableCell align="center">
-                      {relatedQuote.Quote_Stage}
-                    </TableCell>
-                    <TableCell align="center">
-                      {relatedQuote.Grand_Total}
-                    </TableCell>
-                    <TableCell align="center">{relatedQuote.Carrier}</TableCell>
+                    <TableCell align="center">{quote.Quote_Stage}</TableCell>
+                    <TableCell align="center">{quote.Grand_Total}</TableCell>
+                    <TableCell align="center">{quote.Carrier}</TableCell>
                     <TableCell align="center">
                       {/* Edit a record */}
                       <EditQuotes
                         editQuoteId={editQuoteId}
-                        quote={relatedQuote}
-                        onClick={() => handleEditQuotes(relatedQuote.id)}
+                        quote={quote}
+                        onClick={() => handleEditQuotes(quote.id)}
                       />
 
                       {/* Delete a record */}
                       <DeleteRecord
-                        quote={relatedQuote}
-                        onClick={() => handleDeleteQuote(relatedQuote.id)}
+                        quote={quote}
+                        onClick={() => handleDeleteQuote(quote.id)}
                       />
                     </TableCell>
                   </TableRow>
@@ -111,7 +115,7 @@ const TableComponent = ({ relatedQuotes }) => {
       <TablePagination
         rowsPerPageOptions={[5, 10, 25, 100]}
         component="div"
-        count={relatedQuotes ? relatedQuotes.length : 0}
+        count={quotes ? quotes.length : 0}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}

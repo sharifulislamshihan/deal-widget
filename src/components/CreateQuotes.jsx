@@ -14,8 +14,7 @@ import IconButton from "@mui/material/IconButton";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import { Box, Stack } from "@mui/material";
 
-const CreateQuotes = ({ recordId }) => {
-
+const CreateQuotes = ({ recordId, getQuotes }) => {
   //console.log("Create Quotes Record ID:", recordId);
   const [open, setOpen] = useState(false);
   const [subject, setSubject] = useState("");
@@ -34,6 +33,8 @@ const CreateQuotes = ({ recordId }) => {
     "Closed Lost",
   ];
   const carriers = ["FedEX", "UPS", "USPS", "DHL"];
+
+  
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -70,8 +71,7 @@ const CreateQuotes = ({ recordId }) => {
     );
   };
 
- // console.log("checking products state working", products.length);
-
+  // console.log("checking products state working", products.length);
 
   const handleClose = () => {
     setOpen(false);
@@ -101,25 +101,24 @@ const CreateQuotes = ({ recordId }) => {
   });
 
   //console.log("Final record data to submit:", recordData);
-  
 
   const handleSubmit = (event) => {
     event.preventDefault();
     // console.log("Checking submission", subject, quotesStage, carrier, products);
-    
+
     window.ZOHO.CRM.API.insertRecord({
       Entity: "Quotes",
       APIData: recordData,
       Trigger: [],
     }).then(function (data) {
-     // console.log(data.data);
+      // console.log(data.data);
       if (data.data[0].code === "SUCCESS") {
         alert("Record created successfully!");
-        
       } else {
         alert("Failed to create record.");
       }
     });
+    getQuotes();
     handleClose();
   };
 
@@ -205,7 +204,7 @@ const CreateQuotes = ({ recordId }) => {
               </Stack>
 
               {products.map((product) => (
-             //   console.log("checking for poe", product),
+                //   console.log("checking for poe", product),
                 <Stack
                   key={product.id}
                   direction="row"

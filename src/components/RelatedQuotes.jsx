@@ -1,27 +1,9 @@
-import { Box, Button } from "@mui/material";
-import { useEffect, useState } from "react";
+import { Box } from "@mui/material";
 import TableComponent from "./TableComponent";
 import CreateQuotes from "./CreateQuotes";
 
-const RelatedQuotes = ({ moduleName, recordId }) => {
-  const [relatedQuotes, setRelatedQuotes] = useState([]);
- // console.log(moduleName);
-  //console.log("related quotes recordId:", recordId);
-
-  useEffect(() => {
-    if (moduleName && recordId) {
-      window.ZOHO.CRM.API.getRelatedRecords({
-        Entity: moduleName,
-        RecordID: recordId,
-        RelatedList: "Quotes",
-      }).then(function (data) {
-        const quotes = data.data;
-        //console.log("Related Quotes Data:", quotes);
-        setRelatedQuotes(quotes);
-      });
-    }
-  }, [moduleName, recordId]);
-
+const RelatedQuotes = ({ relatedQuotes, moduleName, recordId,  getQuotes }) => {
+  
   return (
     <div>
       <Box
@@ -35,10 +17,15 @@ const RelatedQuotes = ({ moduleName, recordId }) => {
         <h3>Related Quotes</h3>
 
         {/* Create Quotes button */}
-        <CreateQuotes recordId={recordId} />
+        <CreateQuotes recordId={recordId} getQuotes={getQuotes} />
       </Box>
 
-      <TableComponent relatedQuotes={relatedQuotes} />
+      <TableComponent
+        relatedQuotes={relatedQuotes}
+        moduleName={moduleName}
+        recordId={recordId}
+        getQuotes={getQuotes}
+      />
     </div>
   );
 };

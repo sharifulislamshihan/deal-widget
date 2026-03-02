@@ -7,9 +7,9 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 
-const DeleteRecord = ({ deleteQuoteId, onClick, quote }) => {
-  console.log(deleteQuoteId);
-  console.log("Delete Quote", quote);
+const DeleteRecord = ({ onClick, quote }) => {
+  //console.log(deleteQuoteId);
+  //console.log("Delete Quote", quote);
 
   const [open, setOpen] = useState(false);
   const [quoteId, SetQuoteId] = useState(quote?.id || "");
@@ -31,9 +31,9 @@ const DeleteRecord = ({ deleteQuoteId, onClick, quote }) => {
         RecordID: quoteId,
       }).then(function (data) {
         if (data.data[0].code === "SUCCESS") {
-          alert("Record updated successfully!");
+          alert("Record deleted successfully!");
         } else {
-          alert("Failed to update record.");
+          alert("Failed to delete record.");
         }
       });
       handleClose();
@@ -46,7 +46,7 @@ const DeleteRecord = ({ deleteQuoteId, onClick, quote }) => {
         color="error"
         size="small"
         onClick={() => {
-          onClick(deleteQuoteId);
+          onClick(quoteId);
           handleClickOpen();
         }}
       >
