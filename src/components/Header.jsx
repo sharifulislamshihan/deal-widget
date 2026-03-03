@@ -11,7 +11,7 @@ const Header = () => {
           fontWeight: "bold", 
         }}
       >
-        Deal Widget
+        Deal Widgets
       </Typography>
 
     </div>

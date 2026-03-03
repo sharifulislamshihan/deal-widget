@@ -4,7 +4,7 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import EditIcon from "@mui/icons-material/Edit";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
@@ -19,7 +19,6 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
   // console.log("Quote Stage", quote?.Quote_Stage);
   // console.log("Carrier", quote?.Carrier);
   // console.log("Product Details", quote?.Product_Details);
-  
 
   // console.log("Checking id in edit quotes components", editQuoteId);
   const [open, setOpen] = useState(false);
@@ -28,8 +27,31 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
   const [carrier, setCarrier] = useState(quote?.Carrier || "");
   const [products, setProducts] = useState(quote?.Product_Details || []);
   const [productsData, setProductsData] = useState([]);
+  //const [quoteStageList, setQuotesStageList] = useState([]);
 
   //console.log("Checking products", products);
+  // useEffect(() => {
+  //   var func_name = "quotesWidget";
+  //   var req_data = {
+  //     arguments: JSON.stringify({}),
+  //   };
+  //   window.ZOHO.CRM.FUNCTIONS.execute(func_name, req_data).then(function (data) {
+  //     setQuotesStageList(data.details.output);
+  //   });
+  // }, []);
+
+  // var func_name = "quotesWidget";
+  // var req_data = {
+  //   arguments: JSON.stringify({}),
+  // };
+  // window.ZOHO.CRM.FUNCTIONS.execute(func_name, req_data).then(function (data) {
+  //   //setQuotesStageList(data.details.output);
+  //   //console.log(data);
+    
+  // });
+
+  // console.log(quoteStageList);
+
   const quotesStages = [
     "Draft",
     "Negotiation/Review",
@@ -59,11 +81,10 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
     ]);
   };
   //console.log("Checking products", products);
-  
 
   const handleProductChange = (id, field, value) => {
     //console.log(id, field, value);
-    
+
     setProducts((prevProducts) =>
       prevProducts.map((product) => {
         if (product?.id === id) {
@@ -72,13 +93,13 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
         return product;
       }),
     );
-   // console.log("Checking products in handle product change", products);
+    // console.log("Checking products in handle product change", products);
   };
 
   const handleRemoveProduct = (id) => {
     //console.log("Checking products in remove products", products);
-    
-    setProducts((prevProducts) =>      
+
+    setProducts((prevProducts) =>
       prevProducts.filter((product) => product.id !== id),
     );
   };
@@ -92,30 +113,29 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
     setCarrier("");
   };
 
-    var recordData = {
-      id: editQuoteId,
-      Deal_Name: {
-        id: quote.Deal_Name.id,
+  var recordData = {
+    id: editQuoteId,
+    Deal_Name: {
+      id: quote.Deal_Name.id,
+    },
+    Carrier: carrier,
+    Quote_Stage: quotesStage,
+    Subject: subject,
+    Product_Details: [],
+  };
+
+  ///console.log("Checking prod in products", products);
+  products.forEach((prod, index) => {
+    //console.log("Checking prod in products", prod);
+    recordData.Product_Details[index] = {
+      product: {
+        id: prod.productId || prod?.product?.id,
       },
-      Carrier: carrier,
-      Quote_Stage: quotesStage,
-      Subject: subject,
-      Product_Details: [],
+      quantity: prod?.quantity,
     };
+  });
 
-    ///console.log("Checking prod in products", products);
-    products.forEach((prod, index) => {
-      //console.log("Checking prod in products", prod);
-      recordData.Product_Details[index] = {
-        product: {
-          id: prod.productId || prod?.product?.id,
-        },
-        quantity: prod?.quantity,
-      };
-    });
-
-    //console.log("Record Data", recordData);
-    
+  //console.log("Record Data", recordData);
 
   //console.log("Final record data to submit:", recordData);
 
@@ -128,7 +148,7 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
       APIData: recordData,
       Trigger: [],
     }).then(function (data) {
-     // console.log("Update response data:", data);
+      // console.log("Update response data:", data);
       if (data.data[0].code === "SUCCESS") {
         alert("Record updated successfully!");
       } else {
@@ -229,69 +249,65 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
                 </IconButton>
               </Stack>
 
-              {products.map(
-                (product) => (
-               // console.log("checking for poe", product),
-                  (
-                    <Stack
-                      key={product?.id}
-                      direction="row"
-                      spacing={2}
-                      alignItems="center"
-                      sx={{ mb: 1 }}
+              {products.map((product) => (
+                // console.log("checking for poe", product),
+                <Stack
+                  key={product?.id}
+                  direction="row"
+                  spacing={2}
+                  alignItems="center"
+                  sx={{ mb: 1 }}
+                >
+                  <FormControl fullWidth required>
+                    <InputLabel id={`product-select-label-${product?.id}`}>
+                      Product Name
+                    </InputLabel>
+                    <Select
+                      labelId={`product-select-label-${product?.id}`}
+                      value={product?.product?.id}
+                      label="Product Name"
+                      onChange={(e) =>
+                        handleProductChange(
+                          product.id,
+                          "productId",
+                          e.target.value,
+                        )
+                      }
                     >
-                      <FormControl fullWidth required>
-                        <InputLabel id={`product-select-label-${product?.id}`}>
-                          Product Name
-                        </InputLabel>
-                        <Select
-                          labelId={`product-select-label-${product?.id}`}
-                          value={product?.product?.id}
-                          label="Product Name"
-                          onChange={(e) =>
-                            handleProductChange(
-                              product.id,
-                              "productId",
-                              e.target.value,
-                            )
-                          }
-                        >
-                          {productsData.map((prod) => (
-                          //console.log("prod", prod.id),
-                            
-                            <MenuItem key={prod.id} value={prod.id}>
-                              {prod.Product_Name}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                      <TextField
-                        required
-                        label="Quantity"
-                        type="number"
-                        value={product?.quantity || ""}
-                        onChange={(e) =>
-                          handleProductChange(
-                            product.id,
-                            "quantity",
-                            Number(e.target.value),
-                          )
-                        }
-                        inputProps={{ min: 1 }}
-                        sx={{ width: 120 }}
-                      />
-                      <IconButton
-                        color="error"
-                        onClick={() => handleRemoveProduct(product.id)}
-                        aria-label="Remove product"
-                        disabled={products.length === 1}
-                      >
-                        <RemoveCircleOutlineIcon />
-                      </IconButton>
-                    </Stack>
-                  )
-                ),
-              )}
+                      {productsData.map((prod) => (
+                        //console.log("prod", prod.id),
+
+                        <MenuItem key={prod.id} value={prod.id}>
+                          {prod.Product_Name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    required
+                    label="Quantity"
+                    type="number"
+                    value={product?.quantity || ""}
+                    onChange={(e) =>
+                      handleProductChange(
+                        product.id,
+                        "quantity",
+                        Number(e.target.value),
+                      )
+                    }
+                    inputProps={{ min: 1 }}
+                    sx={{ width: 120 }}
+                  />
+                  <IconButton
+                    color="error"
+                    onClick={() => handleRemoveProduct(product.id)}
+                    aria-label="Remove product"
+                    disabled={products.length === 1}
+                  >
+                    <RemoveCircleOutlineIcon />
+                  </IconButton>
+                </Stack>
+              ))}
             </Box>
           </form>
         </DialogContent>
