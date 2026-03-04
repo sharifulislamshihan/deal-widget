@@ -6,12 +6,12 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TablePagination from "@mui/material/TablePagination";
 import Paper from "@mui/material/Paper";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import EditQuotes from "./EditQuotes";
 import DeleteRecord from "./DeleteRecord";
 
 const TableComponent = ({ relatedQuotes, getQuotes }) => {
-  //console.log("Related Quotes in table", relatedQuotes.data);
+  console.log("Related Quotes in table", relatedQuotes.data);
   // const [quotes, setquotes] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -22,11 +22,8 @@ const TableComponent = ({ relatedQuotes, getQuotes }) => {
   // console.log("Record id in table content", recordId);
   // console.log("Delete", deleteQuoteId);
 
-  useEffect(() => {
-    getQuotes();
-  }, [getQuotes]);
-
   const quotes = relatedQuotes.data;
+  console.log("Quotes in table component", quotes);
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -39,14 +36,11 @@ const TableComponent = ({ relatedQuotes, getQuotes }) => {
   const handleEditQuotes = (id) => {
     //console.log("Edit quote with ID:", id);
     setEditQuoteId(id);
-    getQuotes();
   };
   //console.log("Checking edit id", editQuoteId);
 
   const handleDeleteQuote = (id) => {
     console.log("Delete quote with ID:", id);
-    
-    getQuotes();
   };
 
   return (
@@ -92,12 +86,14 @@ const TableComponent = ({ relatedQuotes, getQuotes }) => {
                         editQuoteId={editQuoteId}
                         quote={quote}
                         onClick={() => handleEditQuotes(quote.id)}
+                        getQuotes={getQuotes}
                       />
 
                       {/* Delete a record */}
                       <DeleteRecord
                         quote={quote}
                         onClick={() => handleDeleteQuote(quote.id)}
+                        getQuotes={getQuotes}
                       />
                     </TableCell>
                   </TableRow>

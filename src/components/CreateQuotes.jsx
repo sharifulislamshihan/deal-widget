@@ -114,11 +114,11 @@ const CreateQuotes = ({ recordId, getQuotes }) => {
       // console.log(data.data);
       if (data.data[0].code === "SUCCESS") {
         alert("Record created successfully!");
+        getQuotes();
       } else {
         alert("Failed to create record.");
       }
     });
-    getQuotes();
     handleClose();
   };
 

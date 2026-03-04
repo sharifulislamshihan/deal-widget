@@ -4,7 +4,7 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import EditIcon from "@mui/icons-material/Edit";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
@@ -13,7 +13,7 @@ import Select from "@mui/material/Select";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import { Box, Stack } from "@mui/material";
-const EditQuotes = ({ editQuoteId, onClick, quote }) => {
+const EditQuotes = ({ editQuoteId, onClick, quote, getQuotes }) => {
   //console.log("Quote data received in EditQuotes component:", quote);
   // console.log("Subject", quote?.Subject);
   // console.log("Quote Stage", quote?.Quote_Stage);
@@ -151,11 +151,12 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
       // console.log("Update response data:", data);
       if (data.data[0].code === "SUCCESS") {
         alert("Record updated successfully!");
+        getQuotes();
       } else {
         alert("Failed to update record.");
       }
+      handleClose();
     });
-    handleClose();
   };
 
   return (

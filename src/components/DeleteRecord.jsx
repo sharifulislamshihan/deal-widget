@@ -7,7 +7,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 
-const DeleteRecord = ({ onClick, quote }) => {
+const DeleteRecord = ({ onClick, quote, getQuotes }) => {
   //console.log(deleteQuoteId);
   //console.log("Delete Quote", quote);
 
@@ -32,11 +32,12 @@ const DeleteRecord = ({ onClick, quote }) => {
       }).then(function (data) {
         if (data.data[0].code === "SUCCESS") {
           alert("Record deleted successfully!");
+          getQuotes();
         } else {
           alert("Failed to delete record.");
         }
+        handleClose();
       });
-      handleClose();
     }
   };
 

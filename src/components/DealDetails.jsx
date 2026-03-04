@@ -6,16 +6,25 @@ const DealDetails = ({ moduleName, recordId }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [dealName, setDealName] = useState("");
   const [dealId, setDealId] = useState("");
-  const [contactFirstName, setContactFirstName] = useState("");
-  const [contactLastName, setContactLastName] = useState("");
-  const [contactNameId, setContactNameId] = useState("");
+  const [contactName, setContactName] = useState("");
   const [accountName, setAccountName] = useState("");
-  const [accountId, setAccountId] = useState();
   const [Amount, setAmount] = useState("");
-  const [relatedQuotes, setRelatedQuotes] = useState([]);
-  const [dealCode, setDealCode] = useState("");
-  const [accountCode, setAccountCode] = useState("");
-  const [contactCode, setContactCode] = useState("");
+  const [relatedQuotes, setRelatedQuotes] = useState({ data: [] });
+
+  const getQuotes = async () => {
+    if (!moduleName || !recordId) return;
+    
+    const quotes = await window.ZOHO.CRM.API.getRelatedRecords({
+      Entity: moduleName,
+      RecordID: recordId,
+      RelatedList: "Quotes",
+    }).catch(() => {
+      console.error("Error in get related records");
+    });
+    console.log("Quotes checking", quotes);
+
+    setRelatedQuotes(quotes);
+  };
 
   useEffect(() => {
     if (moduleName && recordId) {
@@ -27,39 +36,19 @@ const DealDetails = ({ moduleName, recordId }) => {
 
         setDealName(recordData.data[0]?.Deal_Name);
         setDealId(recordData.data[0]?.id);
-        setContactNameId(recordData.data[0]?.Contact_Name?.id);
+        setContactName(recordData.data[0]?.Contact_Name?.name);
         setAccountName(recordData.data[0]?.Account_Name?.name);
-        setAccountId(recordData.data[0]?.Account_Name?.id);
         setAmount(recordData.data[0]?.Amount);
       });
-
-      window.ZOHO.CRM.API.getRecord({
-        Entity: "Contacts",
-        RecordID: contactNameId,
-      }).then(function (contactRecordData) {
-        console.log(contactRecordData.data[0]);
-        setContactFirstName(contactRecordData.data[0]?.First_Name);
-        setContactLastName(contactRecordData?.data[0]?.Last_Name);
-      });
+      
+      getQuotes();
     }
-  }, [contactNameId, moduleName, recordId]);
+  }, [moduleName, recordId]);
 
-  const getQuotes = async () => {
-    const quotes = await window.ZOHO.CRM.API.getRelatedRecords({
-      Entity: moduleName,
-      RecordID: recordId,
-      RelatedList: "Quotes",
-    }).catch(() => {
-      console.error("Error in get related records");
-    });
-    //console.log(quotes);
-
-    setRelatedQuotes(quotes);
-  };
-
-  const handleDealSubmit = async(event) => {
+  const handleDealSubmit = async (event) => {
     event.preventDefault();
     setIsLoading(true);
+
     var configDeal = {
       Entity: "Deals",
       APIData: {
@@ -70,54 +59,16 @@ const DealDetails = ({ moduleName, recordId }) => {
       Trigger: [],
     };
 
-    var configAccount = {
-      Entity: "Accounts",
-      APIData: {
-        id: accountId,
-        Account_Name: accountName,
-      },
-      Trigger: [],
-    };
-
-    var configContact = {
-      Entity: "Contacts",
-      APIData: {
-        id: contactNameId,
-        First_Name: contactFirstName,
-        Last_Name: contactLastName,
-      },
-      Trigger: [],
-    };
 
     await window.ZOHO.CRM.API.updateRecord(configDeal).then(function (dealData) {
       console.log(dealData?.data[0]?.code);
-      setDealCode(dealData?.data[0]?.code);
+      if (dealData?.data[0]?.code === "SUCCESS") {
+        alert("Deal updated successfully");
+      } else {
+        alert("Error in updating deal");
+      }
     });
-    await window.ZOHO.CRM.API.updateRecord(configAccount).then(
-      function (accountData) {
-        console.log(accountData?.data[0]?.code);
-        setAccountCode(accountData?.data[0]?.code);
-      },
-    );
-    await window.ZOHO.CRM.API.updateRecord(configContact).then(
-      function (contactData) {
-        console.log(contactData?.data[0]?.code);
-        setContactCode(contactData?.data[0]?.code);
-      },
-    );
 
-
-    if (
-      dealCode === "SUCCESS" &&
-      accountCode === "SUCCESS" &&
-      contactCode === "SUCCESS"
-    ) {
-      alert("Deal updated successfully");
-    }
-    else{
-      alert("Failed to update Deal information");
-    }
-    setIsLoading(false);
     handleClose();
   };
 
@@ -149,33 +100,18 @@ const DealDetails = ({ moduleName, recordId }) => {
             sx={{ mb: 2 }}
           />
 
-          {/* Contact name section */}
-          <Box
-            sx={{
-              display: "flex",
-              gap: 2,
-            }}
-          >
-            <TextField
-              label="Contact First Name"
-              type="text"
-              value={contactFirstName}
-              onChange={(e) => setContactFirstName(e.target.value)}
-              variant="outlined"
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Contact Last Name"
-              type="text"
-              value={contactLastName}
-              onChange={(e) => setContactLastName(e.target.value)}
-              variant="outlined"
-              sx={{ mb: 2 }}
-            />
-          </Box>
           <TextField
+              disabled
+              label="Contact Name"
+              type="text"
+              value={contactName}
+              variant="outlined"
+              sx={{ mb: 2 }}
+            />
+
+          <TextField
+            disabled
             value={accountName}
-            onChange={(e) => setAccountName(e.target.value)}
             label="Account Name"
             variant="outlined"
             sx={{ mb: 2 }}
@@ -216,7 +152,7 @@ const DealDetails = ({ moduleName, recordId }) => {
           Cancel
         </Button>
         <Button variant="contained" type="submit" form="deal-form" disabled={isLoading}>
-           {isLoading ? 'Submitting...' : 'Submit'}
+          {isLoading ? 'Submitting...' : 'Submit'}
         </Button>
       </Box>
     </div>
