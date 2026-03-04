@@ -4,7 +4,7 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import EditIcon from "@mui/icons-material/Edit";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
@@ -27,18 +27,10 @@ const EditQuotes = ({ editQuoteId, onClick, quote, getQuotes }) => {
   const [carrier, setCarrier] = useState(quote?.Carrier || "");
   const [products, setProducts] = useState(quote?.Product_Details || []);
   const [productsData, setProductsData] = useState([]);
-  //const [quoteStageList, setQuotesStageList] = useState([]);
+  const [quoteStageList, setQuotesStageList] = useState([]);
 
   //console.log("Checking products", products);
-  // useEffect(() => {
-  //   var func_name = "quotesWidget";
-  //   var req_data = {
-  //     arguments: JSON.stringify({}),
-  //   };
-  //   window.ZOHO.CRM.FUNCTIONS.execute(func_name, req_data).then(function (data) {
-  //     setQuotesStageList(data.details.output);
-  //   });
-  // }, []);
+
 
   // var func_name = "quotesWidget";
   // var req_data = {
@@ -47,7 +39,7 @@ const EditQuotes = ({ editQuoteId, onClick, quote, getQuotes }) => {
   // window.ZOHO.CRM.FUNCTIONS.execute(func_name, req_data).then(function (data) {
   //   //setQuotesStageList(data.details.output);
   //   //console.log(data);
-    
+
   // });
 
   // console.log(quoteStageList);
@@ -65,6 +57,21 @@ const EditQuotes = ({ editQuoteId, onClick, quote, getQuotes }) => {
 
   const handleClickOpen = () => {
     setOpen(true);
+
+    // Fetch quote stages from Zoho CRM function
+    var func_name = "quotesWidget";
+    var req_data = {
+      "arguments": JSON.stringify({
+        "mailid": "siprxx.xxx@xxxx.com"
+      })
+    };
+    window.ZOHO.CRM.FUNCTIONS.execute(func_name, req_data).then(function (data) {
+      setQuotesStageList(data.details.output);
+    });
+    console.log("Quote stage list", quoteStageList);
+
+
+    // Fetch products
     window.ZOHO.CRM.API.getAllRecords({
       Entity: "Products",
       sort_order: "asc",
@@ -264,7 +271,6 @@ const EditQuotes = ({ editQuoteId, onClick, quote, getQuotes }) => {
                       Product Name
                     </InputLabel>
                     <Select
-                      labelId={`product-select-label-${product?.id}`}
                       value={product?.product?.id}
                       label="Product Name"
                       onChange={(e) =>

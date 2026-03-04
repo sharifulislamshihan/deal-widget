@@ -11,7 +11,7 @@ import EditQuotes from "./EditQuotes";
 import DeleteRecord from "./DeleteRecord";
 
 const TableComponent = ({ relatedQuotes, getQuotes }) => {
-  console.log("Related Quotes in table", relatedQuotes.data);
+  //console.log("Related Quotes in table", relatedQuotes.data);
   // const [quotes, setquotes] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -23,7 +23,7 @@ const TableComponent = ({ relatedQuotes, getQuotes }) => {
   // console.log("Delete", deleteQuoteId);
 
   const quotes = relatedQuotes.data;
-  console.log("Quotes in table component", quotes);
+  //console.log("Quotes in table component", quotes);
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
