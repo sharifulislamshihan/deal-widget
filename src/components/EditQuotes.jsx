@@ -23,8 +23,10 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
   // console.log("Checking id in edit quotes components", editQuoteId);
   const [open, setOpen] = useState(false);
   const [subject, setSubject] = useState(quote?.Subject || "");
-  const [quotesStage, setQuotesStage] = useState(quote?.Quote_Stage || "");
-  const [carrier, setCarrier] = useState(quote?.Carrier || "");
+  const [quotesStage, setQuotesStage] = useState(quote?.Quote_Stage?.id || "");
+  const [carrier, setCarrier] = useState(quote?.Carrier?.id || "");
+  const [quotesStageOptions, setQuotesStageOptions] = useState([]);
+  const [carrierOptions, setCarrierOptions] = useState([]);
   const [products, setProducts] = useState(quote?.Product_Details || []);
   const [productsData, setProductsData] = useState([]);
   //console.log("Checking products", products);
@@ -41,12 +43,10 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
     const validJsonString = `[${response.details.output}]`;
     const data = JSON.parse(validJsonString);
     console.log("Check check", data);
-    // fixed the quotes stage and carrier values as per the response from the function
-    setQuotesStage(data[0].Quote_Stage);
-    setCarrier(data[1].Carrier);
+    // Set the dropdown options arrays
+    setQuotesStageOptions(data[0].Quote_Stage);
+    setCarrierOptions(data[1].Carrier);
   };
-  console.log(quotesStage);
-  console.log(carrier);
 
   // const quotesStages = [
   //   "Draft",
@@ -203,11 +203,11 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
                 onChange={(e) => setQuotesStage(e.target.value)}
                 label="Quotes Stage"
               >
-                {/* {quotesStage.map((stage) => (
-                  <MenuItem key={stage.id} value={stage.display_value}>
+                {quotesStageOptions.map((stage) => (
+                  <MenuItem key={stage.id} value={stage.id}>
                     {stage.display_value}
                   </MenuItem>
-                ))} */}
+                ))}
               </Select>
             </FormControl>
             {/* {
@@ -232,11 +232,11 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
                 onChange={(e) => setCarrier(e.target.value)}
                 label="Carrier"
               >
-                {/* {carrier.map((c) => (
-                  <MenuItem key={c} value={c}>
-                    {c}
+                {carrierOptions.map((c) => (
+                  <MenuItem key={c.id} value={c.id}>
+                    {c.display_value}
                   </MenuItem>
-                ))} */}
+                ))}
               </Select>
             </FormControl>
 

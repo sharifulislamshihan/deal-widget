@@ -20,24 +20,33 @@ const CreateQuotes = ({ recordId, getQuotes }) => {
   const [subject, setSubject] = useState("");
   const [quotesStage, setQuotesStage] = useState("");
   const [carrier, setCarrier] = useState("");
+  const [quotesStageOptions, setQuotesStageOptions] = useState([]);
+  const [carrierOptions, setCarrierOptions] = useState([]);
   const [products, setProducts] = useState([]);
   const [productsData, setProductsData] = useState([]);
 
-  const quotesStages = [
-    "Draft",
-    "Negotiation/Review",
-    "Delivered",
-    "On Hold",
-    "Confirmed",
-    "Closed Won",
-    "Closed Lost",
-  ];
-  const carriers = ["FedEX", "UPS", "USPS", "DHL"];
-
   
+
+  const getQuotesData = async () => {
+    var func_name = "quotesWidget";
+    var req_data = {
+      arguments: JSON.stringify({}),
+    };
+    const response = await window.ZOHO.CRM.FUNCTIONS.execute(
+      func_name,
+      req_data,
+    );
+    const validJsonString = `[${response.details.output}]`;
+    const data = JSON.parse(validJsonString);
+    console.log("Check check", data);
+    // Set the dropdown options arrays
+    setQuotesStageOptions(data[0].Quote_Stage);
+    setCarrierOptions(data[1].Carrier);
+  };
 
   const handleClickOpen = () => {
     setOpen(true);
+    getQuotesData();
     window.ZOHO.CRM.API.getAllRecords({
       Entity: "Products",
       sort_order: "asc",
@@ -160,24 +169,13 @@ const CreateQuotes = ({ recordId, getQuotes }) => {
                 onChange={(e) => setQuotesStage(e.target.value)}
                 label="Quotes Stage"
               >
-                {quotesStages.map((stage) => (
-                  <MenuItem key={stage} value={stage}>
-                    {stage}
+                {quotesStageOptions.map((stage) => (
+                  <MenuItem key={stage.id} value={stage.id}>
+                    {stage.display_value}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
-            {/* {
-              // fixed the quotes stage value as per the response from the function
-              quotesStage.map((stage) => (
-                <TextField
-                  key={stage}
-                  value={stage}
-                  label="Quotes Stage"
-                  variant="outlined">
-                  </TextField>
-              ))
-            } */}
 
             {/* Carrier */}
             <FormControl fullWidth margin="dense" variant="standard" required>
@@ -190,9 +188,9 @@ const CreateQuotes = ({ recordId, getQuotes }) => {
                 onChange={(e) => setCarrier(e.target.value)}
                 label="Carrier"
               >
-                {carriers.map((c) => (
-                  <MenuItem key={c} value={c}>
-                    {c}
+                {carrierOptions.map((c) => (
+                  <MenuItem key={c.id} value={c.id}>
+                    {c.display_value}
                   </MenuItem>
                 ))}
               </Select>
