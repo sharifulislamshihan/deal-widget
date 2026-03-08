@@ -167,6 +167,17 @@ const CreateQuotes = ({ recordId, getQuotes }) => {
                 ))}
               </Select>
             </FormControl>
+            {/* {
+              // fixed the quotes stage value as per the response from the function
+              quotesStage.map((stage) => (
+                <TextField
+                  key={stage}
+                  value={stage}
+                  label="Quotes Stage"
+                  variant="outlined">
+                  </TextField>
+              ))
+            } */}
 
             {/* Carrier */}
             <FormControl fullWidth margin="dense" variant="standard" required>
@@ -247,7 +258,6 @@ const CreateQuotes = ({ recordId, getQuotes }) => {
                         Number(e.target.value),
                       )
                     }
-                    inputProps={{ min: 1 }}
                     sx={{ width: 120 }}
                   />
                   <IconButton

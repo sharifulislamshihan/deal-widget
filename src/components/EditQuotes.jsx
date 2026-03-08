@@ -4,7 +4,7 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import EditIcon from "@mui/icons-material/Edit";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
@@ -13,7 +13,7 @@ import Select from "@mui/material/Select";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import { Box, Stack } from "@mui/material";
-const EditQuotes = ({ editQuoteId, onClick, quote, getQuotes }) => {
+const EditQuotes = ({ editQuoteId, onClick, quote }) => {
   //console.log("Quote data received in EditQuotes component:", quote);
   // console.log("Subject", quote?.Subject);
   // console.log("Quote Stage", quote?.Quote_Stage);
@@ -27,51 +27,41 @@ const EditQuotes = ({ editQuoteId, onClick, quote, getQuotes }) => {
   const [carrier, setCarrier] = useState(quote?.Carrier || "");
   const [products, setProducts] = useState(quote?.Product_Details || []);
   const [productsData, setProductsData] = useState([]);
-  const [quoteStageList, setQuotesStageList] = useState([]);
-
   //console.log("Checking products", products);
 
+  const getQuotesData = async () => {
+    var func_name = "quotesWidget";
+    var req_data = {
+      arguments: JSON.stringify({}),
+    };
+    const response = await window.ZOHO.CRM.FUNCTIONS.execute(
+      func_name,
+      req_data,
+    );
+    const validJsonString = `[${response.details.output}]`;
+    const data = JSON.parse(validJsonString);
+    console.log("Check check", data);
+    // fixed the quotes stage and carrier values as per the response from the function
+    setQuotesStage(data[0].Quote_Stage);
+    setCarrier(data[1].Carrier);
+  };
+  console.log(quotesStage);
+  console.log(carrier);
 
-  // var func_name = "quotesWidget";
-  // var req_data = {
-  //   arguments: JSON.stringify({}),
-  // };
-  // window.ZOHO.CRM.FUNCTIONS.execute(func_name, req_data).then(function (data) {
-  //   //setQuotesStageList(data.details.output);
-  //   //console.log(data);
-
-  // });
-
-  // console.log(quoteStageList);
-
-  const quotesStages = [
-    "Draft",
-    "Negotiation/Review",
-    "Delivered",
-    "On Hold",
-    "Confirmed",
-    "Closed Won",
-    "Closed Lost",
-  ];
-  const carriers = ["FedEX", "UPS", "USPS", "DHL"];
+  // const quotesStages = [
+  //   "Draft",
+  //   "Negotiation/Review",
+  //   "Delivered",
+  //   "On Hold",
+  //   "Confirmed",
+  //   "Closed Won",
+  //   "Closed Lost",
+  // ];
+  // const carriers = ["FedEX", "UPS", "USPS", "DHL"];
 
   const handleClickOpen = () => {
     setOpen(true);
-
-    // Fetch quote stages from Zoho CRM function
-    var func_name = "quotesWidget";
-    var req_data = {
-      "arguments": JSON.stringify({
-        "mailid": "siprxx.xxx@xxxx.com"
-      })
-    };
-    window.ZOHO.CRM.FUNCTIONS.execute(func_name, req_data).then(function (data) {
-      setQuotesStageList(data.details.output);
-    });
-    console.log("Quote stage list", quoteStageList);
-
-
-    // Fetch products
+    getQuotesData();
     window.ZOHO.CRM.API.getAllRecords({
       Entity: "Products",
       sort_order: "asc",
@@ -158,12 +148,11 @@ const EditQuotes = ({ editQuoteId, onClick, quote, getQuotes }) => {
       // console.log("Update response data:", data);
       if (data.data[0].code === "SUCCESS") {
         alert("Record updated successfully!");
-        getQuotes();
       } else {
         alert("Failed to update record.");
       }
-      handleClose();
     });
+    handleClose();
   };
 
   return (
@@ -214,13 +203,23 @@ const EditQuotes = ({ editQuoteId, onClick, quote, getQuotes }) => {
                 onChange={(e) => setQuotesStage(e.target.value)}
                 label="Quotes Stage"
               >
-                {quotesStages.map((stage) => (
-                  <MenuItem key={stage} value={stage}>
-                    {stage}
+                {/* {quotesStage.map((stage) => (
+                  <MenuItem key={stage.id} value={stage.display_value}>
+                    {stage.display_value}
                   </MenuItem>
-                ))}
+                ))} */}
               </Select>
             </FormControl>
+            {/* {
+              quotesStage.map((stage) => (
+                <TextField
+                  key={stage}
+                  value={stage}
+                  label="Quotes Stage"
+                  variant="outlined">
+                  </TextField>
+              ))
+            } */}
 
             {/* Carrier */}
             <FormControl fullWidth margin="dense" variant="standard" required>
@@ -233,11 +232,11 @@ const EditQuotes = ({ editQuoteId, onClick, quote, getQuotes }) => {
                 onChange={(e) => setCarrier(e.target.value)}
                 label="Carrier"
               >
-                {carriers.map((c) => (
+                {/* {carrier.map((c) => (
                   <MenuItem key={c} value={c}>
                     {c}
                   </MenuItem>
-                ))}
+                ))} */}
               </Select>
             </FormControl>
 
@@ -271,6 +270,7 @@ const EditQuotes = ({ editQuoteId, onClick, quote, getQuotes }) => {
                       Product Name
                     </InputLabel>
                     <Select
+                      labelId={`product-select-label-${product?.id}`}
                       value={product?.product?.id}
                       label="Product Name"
                       onChange={(e) =>
