@@ -13,23 +13,25 @@ import Select from "@mui/material/Select";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import { Box, Stack } from "@mui/material";
-const EditQuotes = ({ editQuoteId, onClick, quote }) => {
-  //console.log("Quote data received in EditQuotes component:", quote);
-  // console.log("Subject", quote?.Subject);
-  // console.log("Quote Stage", quote?.Quote_Stage);
-  // console.log("Carrier", quote?.Carrier);
+const EditQuotes = ({ editQuoteId, onClick, quote, getQuotes }) => {
+   console.log(quote);
+   console.log("Subject", quote?.Subject);
+   console.log("Quote Stage", quote?.Quote_Stage);
+   console.log("Carrier", quote?.Carrier);
   // console.log("Product Details", quote?.Product_Details);
 
-  // console.log("Checking id in edit quotes components", editQuoteId);
   const [open, setOpen] = useState(false);
   const [subject, setSubject] = useState(quote?.Subject || "");
-  const [quotesStage, setQuotesStage] = useState(quote?.Quote_Stage?.id || "");
-  const [carrier, setCarrier] = useState(quote?.Carrier?.id || "");
+  const [quotesStage, setQuotesStage] = useState(quote?.Quote_Stage || "");
+  const [carrier, setCarrier] = useState(quote?.Carrier || "");
   const [quotesStageOptions, setQuotesStageOptions] = useState([]);
   const [carrierOptions, setCarrierOptions] = useState([]);
   const [products, setProducts] = useState(quote?.Product_Details || []);
   const [productsData, setProductsData] = useState([]);
-  //console.log("Checking products", products);
+  
+  // console.log("Checking products", subject);
+  // console.log("Checking products", quotesStage);
+  // console.log("Checking products", carrier);
 
   const getQuotesData = async () => {
     var func_name = "quotesWidget";
@@ -47,17 +49,6 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
     setQuotesStageOptions(data[0].Quote_Stage);
     setCarrierOptions(data[1].Carrier);
   };
-
-  // const quotesStages = [
-  //   "Draft",
-  //   "Negotiation/Review",
-  //   "Delivered",
-  //   "On Hold",
-  //   "Confirmed",
-  //   "Closed Won",
-  //   "Closed Lost",
-  // ];
-  // const carriers = ["FedEX", "UPS", "USPS", "DHL"];
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -95,7 +86,6 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
 
   const handleRemoveProduct = (id) => {
     //console.log("Checking products in remove products", products);
-
     setProducts((prevProducts) =>
       prevProducts.filter((product) => product.id !== id),
     );
@@ -105,9 +95,6 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
 
   const handleClose = () => {
     setOpen(false);
-    setSubject("");
-    setQuotesStage("");
-    setCarrier("");
   };
 
   var recordData = {
@@ -133,7 +120,6 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
   });
 
   //console.log("Record Data", recordData);
-
   //console.log("Final record data to submit:", recordData);
 
   const handleSubmit = (event) => {
@@ -148,6 +134,7 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
       // console.log("Update response data:", data);
       if (data.data[0].code === "SUCCESS") {
         alert("Record updated successfully!");
+        getQuotes();
       } else {
         alert("Failed to update record.");
       }
@@ -197,43 +184,31 @@ const EditQuotes = ({ editQuoteId, onClick, quote }) => {
               <InputLabel id="quotes-stage-label">Quotes Stage</InputLabel>
               <Select
                 labelId="quotes-stage-label"
-                id="quotes-stage"
                 name="quotesStage"
                 value={quotesStage}
                 onChange={(e) => setQuotesStage(e.target.value)}
                 label="Quotes Stage"
               >
                 {quotesStageOptions.map((stage) => (
-                  <MenuItem key={stage.id} value={stage.id}>
+                  <MenuItem key={stage.id} value={stage.display_value}>
                     {stage.display_value}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
-            {/* {
-              quotesStage.map((stage) => (
-                <TextField
-                  key={stage}
-                  value={stage}
-                  label="Quotes Stage"
-                  variant="outlined">
-                  </TextField>
-              ))
-            } */}
 
             {/* Carrier */}
             <FormControl fullWidth margin="dense" variant="standard" required>
               <InputLabel id="carrier-label">Carrier</InputLabel>
               <Select
                 labelId="carrier-label"
-                id="carrier"
                 name="carrier"
                 value={carrier}
                 onChange={(e) => setCarrier(e.target.value)}
                 label="Carrier"
               >
                 {carrierOptions.map((c) => (
-                  <MenuItem key={c.id} value={c.id}>
+                  <MenuItem key={c.id} value={c.display_value}>
                     {c.display_value}
                   </MenuItem>
                 ))}

@@ -170,7 +170,7 @@ const CreateQuotes = ({ recordId, getQuotes }) => {
                 label="Quotes Stage"
               >
                 {quotesStageOptions.map((stage) => (
-                  <MenuItem key={stage.id} value={stage.id}>
+                  <MenuItem key={stage.id} value={stage.display_value}>
                     {stage.display_value}
                   </MenuItem>
                 ))}
@@ -189,7 +189,7 @@ const CreateQuotes = ({ recordId, getQuotes }) => {
                 label="Carrier"
               >
                 {carrierOptions.map((c) => (
-                  <MenuItem key={c.id} value={c.id}>
+                  <MenuItem key={c.id} value={c.display_value}>
                     {c.display_value}
                   </MenuItem>
                 ))}
