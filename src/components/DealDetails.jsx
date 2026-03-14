@@ -1,6 +1,7 @@
 import { Box, Button, TextField } from "@mui/material";
 import { useEffect, useState } from "react";
 import RelatedQuotes from "./RelatedQuotes";
+import DataTransaction from "./DataTransaction";
 
 const DealDetails = ({ moduleName, recordId }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -10,10 +11,11 @@ const DealDetails = ({ moduleName, recordId }) => {
   const [accountName, setAccountName] = useState("");
   const [Amount, setAmount] = useState("");
   const [relatedQuotes, setRelatedQuotes] = useState({ data: [] });
+  const [dataTransaction, setDataTransaction] = useState([]);
 
   const getQuotes = async () => {
     if (!moduleName || !recordId) return;
-    
+
     const quotes = await window.ZOHO.CRM.API.getRelatedRecords({
       Entity: moduleName,
       RecordID: recordId,
@@ -21,7 +23,7 @@ const DealDetails = ({ moduleName, recordId }) => {
     }).catch(() => {
       console.error("Error in get related records");
     });
-    console.log("Quotes checking", quotes);
+    // console.log("Quotes checking", quotes);
 
     setRelatedQuotes(quotes);
   };
@@ -32,18 +34,22 @@ const DealDetails = ({ moduleName, recordId }) => {
         Entity: moduleName,
         RecordID: recordId,
       }).then(function (recordData) {
-        console.log(recordData.data[0]);
+        // console.log(recordData.data[0].Subform_1);
 
         setDealName(recordData.data[0]?.Deal_Name);
         setDealId(recordData.data[0]?.id);
         setContactName(recordData.data[0]?.Contact_Name?.name);
         setAccountName(recordData.data[0]?.Account_Name?.name);
         setAmount(recordData.data[0]?.Amount);
+        setDataTransaction(recordData.data[0].Subform_1);
       });
-      
+
       getQuotes();
     }
   }, [moduleName, recordId]);
+
+  console.log("Data",dataTransaction);
+  
 
   const handleDealSubmit = async (event) => {
     event.preventDefault();
@@ -59,15 +65,16 @@ const DealDetails = ({ moduleName, recordId }) => {
       Trigger: [],
     };
 
-
-    await window.ZOHO.CRM.API.updateRecord(configDeal).then(function (dealData) {
-      console.log(dealData?.data[0]?.code);
-      if (dealData?.data[0]?.code === "SUCCESS") {
-        alert("Deal updated successfully");
-      } else {
-        alert("Error in updating deal");
-      }
-    });
+    await window.ZOHO.CRM.API.updateRecord(configDeal).then(
+      function (dealData) {
+        // console.log(dealData?.data[0]?.code);
+        if (dealData?.data[0]?.code === "SUCCESS") {
+          alert("Deal updated successfully");
+        } else {
+          alert("Error in updating deal");
+        }
+      },
+    );
 
     handleClose();
   };
@@ -101,13 +108,13 @@ const DealDetails = ({ moduleName, recordId }) => {
           />
 
           <TextField
-              disabled
-              label="Contact Name"
-              type="text"
-              value={contactName}
-              variant="outlined"
-              sx={{ mb: 2 }}
-            />
+            disabled
+            label="Contact Name"
+            type="text"
+            value={contactName}
+            variant="outlined"
+            sx={{ mb: 2 }}
+          />
 
           <TextField
             disabled
@@ -135,6 +142,9 @@ const DealDetails = ({ moduleName, recordId }) => {
         getQuotes={getQuotes}
       />
 
+      <DataTransaction dataTransactions={dataTransaction}/>
+      <form></form>
+
       <Box
         sx={{
           display: "flex",
@@ -151,8 +161,13 @@ const DealDetails = ({ moduleName, recordId }) => {
         >
           Cancel
         </Button>
-        <Button variant="contained" type="submit" form="deal-form" disabled={isLoading}>
-          {isLoading ? 'Submitting...' : 'Submit'}
+        <Button
+          variant="contained"
+          type="submit"
+          form="deal-form"
+          disabled={isLoading}
+        >
+          {isLoading ? "Submitting..." : "Submit"}
         </Button>
       </Box>
     </div>

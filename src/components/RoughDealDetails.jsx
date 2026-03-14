@@ -1,230 +1,275 @@
-import { Box, Button, TextField } from "@mui/material";
-import { useEffect, useState } from "react";
-import RelatedQuotes from "./RelatedQuotes";
+import React, { useState } from 'react'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+  IconButton,
+  TextField,
+  Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from '@mui/material'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+import AddIcon from '@mui/icons-material/Add'
+import EditIcon from '@mui/icons-material/Edit'
+import DeleteIcon from '@mui/icons-material/Delete'
+import SaveIcon from '@mui/icons-material/Save'
+import CancelIcon from '@mui/icons-material/Close'
+import { faker } from '@faker-js/faker'
 
-const DealDetails = ({ moduleName, recordId }) => {
-    const [isLoading, setIsLoading] = useState(false);
-    const [dealName, setDealName] = useState("");
-    const [dealId, setDealId] = useState("");
-    const [contactFirstName, setContactFirstName] = useState("");
-    const [contactLastName, setContactLastName] = useState("");
-    const [contactNameId, setContactNameId] = useState("");
-    const [accountName, setAccountName] = useState("");
-    const [accountId, setAccountId] = useState();
-    const [Amount, setAmount] = useState("");
-    const [relatedQuotes, setRelatedQuotes] = useState([]);
-    const [dealCode, setDealCode] = useState("");
-    const [accountCode, setAccountCode] = useState("");
-    const [contactCode, setContactCode] = useState("");
+const createRandomRow = () => ({
+  id: faker.string.uuid(),
+  transactionName: faker.commerce.productName(),
+  email: faker.internet.email(),
+  amount: parseFloat(faker.finance.amount({ min: 10, max: 1000 })),
+  transactionDate: faker.date.past(),
+})
 
-    useEffect(() => {
-        if (moduleName && recordId) {
-            window.ZOHO.CRM.API.getRecord({
-                Entity: moduleName,
-                RecordID: recordId,
-            }).then(function (recordData) {
-                console.log(recordData.data[0]);
+const initialRows = faker.helpers.multiple(createRandomRow, {
+  count: 5,
+})
 
-                setDealName(recordData.data[0]?.Deal_Name);
-                setDealId(recordData.data[0]?.id);
-                setContactNameId(recordData.data[0]?.Contact_Name?.id);
-                setAccountName(recordData.data[0]?.Account_Name?.name);
-                setAccountId(recordData.data[0]?.Account_Name?.id);
-                setAmount(recordData.data[0]?.Amount);
-            });
-        }
-    }, [moduleName, recordId]);
+const emptyNewRow = {
+  id: '',
+  transactionName: '',
+  email: '',
+  amount: 0,
+  transactionDate: null,
+}
 
-    useEffect(() => {
-        if (contactNameId) {
-            window.ZOHO.CRM.API.getRecord({
-                Entity: "Contacts",
-                RecordID: contactNameId,
-            }).then(function (contactRecordData) {
-                console.log(contactRecordData.data[0]);
-                setContactFirstName(contactRecordData.data[0]?.First_Name);
-                setContactLastName(contactRecordData?.data[0]?.Last_Name);
-            });
-        }
-    }, [contactNameId]);
+export default function App() {
+  const [rows, setRows] = useState(initialRows)
+  const [editingRowId, setEditingRowId] = useState(null)
+  const [editedRowData, setEditedRowData] = useState(null)
+  const [openAddDialog, setOpenAddDialog] = useState(false)
+  const [newRowData, setNewRowData] = useState(emptyNewRow)
 
-    const getQuotes = async () => {
-        const quotes = await window.ZOHO.CRM.API.getRelatedRecords({
-            Entity: moduleName,
-            RecordID: recordId,
-            RelatedList: "Quotes",
-        }).catch(() => {
-            console.error("Error in get related records");
-        });
-        //console.log(quotes);
+  const handleOpenAddDialog = () => {
+    setNewRowData(emptyNewRow) // Reset dialog fields
+    setOpenAddDialog(true)
+  }
 
-        setRelatedQuotes(quotes);
-    };
+  const handleCloseAddDialog = () => {
+    setOpenAddDialog(false)
+  }
 
-    const handleDealSubmit = async (event) => {
-        event.preventDefault();
-        setIsLoading(true);
-        var configDeal = {
-            Entity: "Deals",
-            APIData: {
-                id: dealId,
-                Deal_Name: dealName,
-                Amount: Amount,
-            },
-            Trigger: [],
-        };
+  const handleSaveNewRow = () => {
+    const finalNewRow = { ...newRowData, id: faker.string.uuid(), isNew: false }
+    setRows((prevRows) => [...prevRows, finalNewRow])
+    handleCloseAddDialog()
+  }
 
-        var configAccount = {
-            Entity: "Accounts",
-            APIData: {
-                id: accountId,
-                Account_Name: accountName,
-            },
-            Trigger: [],
-        };
+  const handleNewRowInputChange = (e) => {
+    const { name, value } = e.target
+    setNewRowData((prev) => {
+      if (name === 'amount') {
+        return { ...prev, [name]: parseFloat(value) || 0 }
+      }
+      return { ...prev, [name]: value }
+    })
+  }
 
-        var configContact = {
-            Entity: "Contacts",
-            APIData: {
-                id: contactNameId,
-                First_Name: contactFirstName,
-                Last_Name: contactLastName,
-            },
-            Trigger: [],
-        };
+  const handleNewRowDateChange = (date) => {
+    setNewRowData((prev) => ({ ...prev, transactionDate: date }))
+  }
 
-        await window.ZOHO.CRM.API.updateRecord(configDeal).then(function (dealData) {
-            console.log(dealData?.data[0]?.code);
-            setDealCode(dealData?.data[0]?.code);
-        });
-        await window.ZOHO.CRM.API.updateRecord(configAccount).then(
-            function (accountData) {
-                console.log(accountData?.data[0]?.code);
-                setAccountCode(accountData?.data[0]?.code);
-            },
-        );
-        await window.ZOHO.CRM.API.updateRecord(configContact).then(
-            function (contactData) {
-                console.log(contactData?.data[0]?.code);
-                setContactCode(contactData?.data[0]?.code);
-            },
-        );
+  const handleEditClick = (id) => {
+    const rowToEdit = rows.find((row) => row.id === id)
+    if (rowToEdit) {
+      setEditingRowId(id)
+      setEditedRowData({ ...rowToEdit }) // Create a copy for editing
+    }
+  }
 
+  const handleSaveClick = (id) => {
+    if (editedRowData) {
+      setRows((prevRows) =>
+        prevRows.map((row) => (row.id === id ? { ...editedRowData, isNew: false } : row)),
+      )
+      setEditingRowId(null)
+      setEditedRowData(null)
+    }
+  }
 
-        if (
-            dealCode === "SUCCESS" &&
-            accountCode === "SUCCESS" &&
-            contactCode === "SUCCESS"
-        ) {
-            alert("Deal updated successfully");
-        }
-        else {
-            alert("Failed to update Deal information");
-        }
-        setIsLoading(false);
-        handleClose();
-    };
+  const handleCancelClick = (id) => {
+    setEditingRowId(null)
+    setEditedRowData(null)
+  }
 
-    const handleClose = () => {
-        window.ZOHO.CRM.UI.Popup.closeReload().then(function (data) {
-            console.log(data);
-        });
-    };
+  const handleDeleteClick = (id) => {
+    setRows((prevRows) => prevRows.filter((row) => row.id !== id))
+  }
 
-    return (
-        <div>
-            <h3>Deal Details</h3>
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setEditedRowData((prev) => {
+      if (!prev) return null
+      if (name === 'amount') {
+        return { ...prev, [name]: parseFloat(value) || 0 }
+      }
+      return { ...prev, [name]: value }
+    })
+  }
 
-            <form onSubmit={handleDealSubmit} id="deal-form">
-                <Box
-                    sx={{
-                        mb: 2,
-                        display: "grid",
-                        gridTemplateColumns: "repeat(2, 1fr)", // Create 2 equal columns
-                        gap: 2, // Spacing between boxes
-                    }}
-                >
-                    <TextField
-                        value={dealName}
-                        onChange={(e) => setDealName(e.target.value)}
-                        label="Deal Name"
-                        type="text"
-                        variant="outlined"
-                        sx={{ mb: 2 }}
-                    />
+  const handleDateChange = (date) => {
+    setEditedRowData((prev) => {
+      if (!prev) return null
+      return { ...prev, transactionDate: date }
+    })
+  }
 
-                    {/* Contact name section */}
-                    <Box
-                        sx={{
-                            display: "flex",
-                            gap: 2,
-                        }}
-                    >
-                        <TextField
-                            label="Contact First Name"
-                            type="text"
-                            value={contactFirstName}
-                            onChange={(e) => setContactFirstName(e.target.value)}
-                            variant="outlined"
-                            sx={{ mb: 2 }}
-                        />
-                        <TextField
-                            label="Contact Last Name"
-                            type="text"
-                            value={contactLastName}
-                            onChange={(e) => setContactLastName(e.target.value)}
-                            variant="outlined"
-                            sx={{ mb: 2 }}
-                        />
-                    </Box>
-                    <TextField
-                        value={accountName}
-                        onChange={(e) => setAccountName(e.target.value)}
-                        label="Account Name"
-                        variant="outlined"
-                        sx={{ mb: 2 }}
-                    />
-                    <TextField
-                        id="Amount"
-                        value={Amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        label="Total amount of Deals"
-                        type="text"
-                        variant="outlined"
-                        sx={{ mb: 2 }}
-                    />
-                </Box>
-            </form>
+  return (
+    <Box sx={{ p: 4 }}>
+      <Button
+        variant="contained"
+        startIcon={<AddIcon />}
+        onClick={handleOpenAddDialog}
+        sx={{ mb: 2 }}
+      >
+        Add Row
+      </Button>
 
-            <RelatedQuotes
-                moduleName={moduleName}
-                recordId={recordId}
-                relatedQuotes={relatedQuotes}
-                getQuotes={getQuotes}
+      <TableContainer component={Paper} className="shadow-md rounded-lg">
+        <Table sx={{ minWidth: 700 }} aria-label="dynamic table">
+          <TableHead className="bg-gray-100">
+            <TableRow>
+              <TableCell className="font-bold text-gray-700">Transaction Name</TableCell>
+              <TableCell className="font-bold text-gray-700">Email</TableCell>
+              <TableCell align="right" className="font-bold text-gray-700">Amount</TableCell>
+              <TableCell className="font-bold text-gray-700">Transaction Date</TableCell>
+              <TableCell align="center" className="font-bold text-gray-700">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {rows.map((row) => (
+              <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                {editingRowId === row.id && editedRowData ? (
+                  <>
+                    <TableCell>
+                      <TextField
+                        name="transactionName"
+                        value={editedRowData.transactionName}
+                        onChange={handleInputChange}
+                        size="small"
+                        fullWidth
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        name="email"
+                        value={editedRowData.email}
+                        onChange={handleInputChange}
+                        size="small"
+                        fullWidth
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <TextField
+                        name="amount"
+                        value={editedRowData.amount}
+                        onChange={handleInputChange}
+                        type="number"
+                        size="small"
+                        fullWidth
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <DatePicker
+                        label="Date"
+                        value={editedRowData.transactionDate}
+                        onChange={handleDateChange}
+                        slotProps={{ textField: { size: 'small', fullWidth: true } }}
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton aria-label="save" onClick={() => handleSaveClick(row.id)} color="primary">
+                        <SaveIcon />
+                      </IconButton>
+                      <IconButton aria-label="cancel" onClick={() => handleCancelClick(row.id)} color="inherit">
+                        <CancelIcon />
+                      </IconButton>
+                    </TableCell>
+                  </>
+                ) : (
+                  <>
+                    <TableCell component="th" scope="row">
+                      {row.transactionName}
+                    </TableCell>
+                    <TableCell>{row.email}</TableCell>
+                    <TableCell align="right">${row.amount.toFixed(2)}</TableCell>
+                    <TableCell>
+                      {row.transactionDate ? new Date(row.transactionDate).toLocaleDateString() : 'N/A'}
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton aria-label="edit" onClick={() => handleEditClick(row.id)} color="info">
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton aria-label="delete" onClick={() => handleDeleteClick(row.id)} color="error">
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Add New Row Dialog */}
+      <Dialog open={openAddDialog} onClose={handleCloseAddDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>Add New Transaction</DialogTitle>
+        <DialogContent>
+          <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+            <TextField
+              name="transactionName"
+              label="Transaction Name"
+              value={newRowData.transactionName}
+              onChange={handleNewRowInputChange}
+              fullWidth
+              size="small"
             />
-
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    mt: 3,
-                }}
-            >
-                <Button
-                    sx={{
-                        mr: 2,
-                    }}
-                    variant="outlined"
-                    onClick={handleClose}
-                >
-                    Cancel
-                </Button>
-                <Button variant="contained" type="submit" form="deal-form" disabled={isLoading}>
-                    {isLoading ? 'Submitting...' : 'Submit'}
-                </Button>
-            </Box>
-        </div>
-    );
-};
-
-export default DealDetails;
+            <TextField
+              name="email"
+              label="Email"
+              value={newRowData.email}
+              onChange={handleNewRowInputChange}
+              fullWidth
+              size="small"
+            />
+            <TextField
+              name="amount"
+              label="Amount"
+              type="number"
+              value={newRowData.amount}
+              onChange={handleNewRowInputChange}
+              fullWidth
+              size="small"
+            />
+            <DatePicker
+              label="Transaction Date"
+              value={newRowData.transactionDate}
+              onChange={handleNewRowDateChange}
+              slotProps={{ textField: { fullWidth: true, size: 'small' } }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseAddDialog} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleSaveNewRow} color="primary" variant="contained">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  )
+}

@@ -38,7 +38,7 @@ const CreateQuotes = ({ recordId, getQuotes }) => {
     );
     const validJsonString = `[${response.details.output}]`;
     const data = JSON.parse(validJsonString);
-    console.log("Check check", data);
+   // console.log("Check check", data);
     // Set the dropdown options arrays
     setQuotesStageOptions(data[0].Quote_Stage);
     setCarrierOptions(data[1].Carrier);

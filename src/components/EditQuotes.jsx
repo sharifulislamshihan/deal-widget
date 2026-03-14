@@ -14,10 +14,10 @@ import AddIcon from "@mui/icons-material/Add";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import { Box, Stack } from "@mui/material";
 const EditQuotes = ({ editQuoteId, onClick, quote, getQuotes }) => {
-   console.log(quote);
-   console.log("Subject", quote?.Subject);
-   console.log("Quote Stage", quote?.Quote_Stage);
-   console.log("Carrier", quote?.Carrier);
+  //  console.log(quote);
+  //  console.log("Subject", quote?.Subject);
+  //  console.log("Quote Stage", quote?.Quote_Stage);
+  //  console.log("Carrier", quote?.Carrier);
   // console.log("Product Details", quote?.Product_Details);
 
   const [open, setOpen] = useState(false);
@@ -44,7 +44,7 @@ const EditQuotes = ({ editQuoteId, onClick, quote, getQuotes }) => {
     );
     const validJsonString = `[${response.details.output}]`;
     const data = JSON.parse(validJsonString);
-    console.log("Check check", data);
+   // console.log("Check check", data);
     // Set the dropdown options arrays
     setQuotesStageOptions(data[0].Quote_Stage);
     setCarrierOptions(data[1].Carrier);
