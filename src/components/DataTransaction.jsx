@@ -15,6 +15,9 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
+import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -31,15 +34,16 @@ const emptyNewRow = {
 };
 
 const DataTransaction = ({ dataTransactions }) => {
-  const [dataTransactionInfo, setdataTransactionInfo] = useState(dataTransactions);
+  const [dataTransactionInfo, setDataTransactionInfo] =
+    useState(dataTransactions);
   const [editingRowId, setEditingRowId] = useState(null);
   const [editedRowData, setEditedRowData] = useState(null);
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const [newRowData, setNewRowData] = useState(emptyNewRow);
 
-  //console.log(transactionData);
+  console.log(dataTransactionInfo);
   const handleOpenAddDialog = () => {
-    setNewRowData(emptyNewRow); // Reset dialog fields
+    //setNewRowData(emptyNewRow); // Reset dialog fields
     setOpenAddDialog(true);
   };
 
@@ -129,129 +133,199 @@ const DataTransaction = ({ dataTransactions }) => {
         >
           Add Row
         </Button>
-      </Box>
 
-      <TableContainer component={Paper} className="shadow-md rounded-lg">
-        <Table sx={{ minWidth: 700 }} aria-label="dynamic table">
-          <TableHead className="bg-gray-100">
-            <TableRow>
-              <TableCell className="font-bold text-gray-700">
-                Transaction Name
-              </TableCell>
-              <TableCell className="font-bold text-gray-700">Email</TableCell>
-              <TableCell align="right" className="font-bold text-gray-700">
-                Amount
-              </TableCell>
-              <TableCell className="font-bold text-gray-700">
-                Transaction Date
-              </TableCell>
-              <TableCell align="center" className="font-bold text-gray-700">
-                Actions
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {dataTransactionInfo.map((dataTransaction) => (
-              <TableRow
-                key={dataTransaction.id}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-              >
-                {editingRowId === dataTransaction.id && editedRowData ? (
-                  <>
-                    <TableCell>
-                      <TextField
-                        name="transactionName"
-                        value={editedRowData.Transaction_Name}
-                        onChange={handleInputChange}
-                        size="small"
-                        fullWidth
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        name="email"
-                        value={editedRowData.Transaction_Email}
-                        onChange={handleInputChange}
-                        size="small"
-                        fullWidth
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      <TextField
-                        name="amount"
-                        value={editedRowData.Transaction_Amount}
-                        onChange={handleInputChange}
-                        type="number"
-                        size="small"
-                        fullWidth
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <DatePicker
-                        label="Date"
-                        value={editedRowData.Transaction_Date}
-                        onChange={handleDateChange}
-                        slotProps={{
-                          textField: { size: "small", fullWidth: true },
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        aria-label="save"
-                        onClick={() => handleSaveClick(dataTransaction.id)}
-                        color="primary"
-                      >
-                        <SaveIcon />
-                      </IconButton>
-                      <IconButton
-                        aria-label="cancel"
-                        onClick={() => handleCancelClick(dataTransaction.id)}
-                        color="inherit"
-                      >
-                        <CancelIcon />
-                      </IconButton>
-                    </TableCell>
-                  </>
-                ) : (
-                  <>
-                    <TableCell component="th" scope="row">
-                      {dataTransaction.Transaction_Name}
-                    </TableCell>
-                    <TableCell>{dataTransaction.Transaction_Email}</TableCell>
-                    <TableCell align="right">
-                      ${dataTransaction.Transaction_Amount.toFixed(2)}
-                    </TableCell>
-                    <TableCell>
-                      {dataTransaction.Transaction_Date
-                        ? new Date(
-                            dataTransaction.Transaction_Date,
-                          ).toLocaleDateString()
-                        : "N/A"}
-                    </TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        aria-label="edit"
-                        //onClick={() => handleEditClick(row.id)}
-                        color="info"
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        aria-label="delete"
-                        //onClick={() => handleDeleteClick(row.id)}
-                        color="error"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </>
-                )}
+        <TableContainer component={Paper} className="shadow-md rounded-lg">
+          <Table sx={{ minWidth: 700 }} aria-label="dynamic table">
+            <TableHead className="bg-gray-100">
+              <TableRow>
+                <TableCell className="font-bold text-gray-700">
+                  Transaction Name
+                </TableCell>
+                <TableCell className="font-bold text-gray-700">Email</TableCell>
+                <TableCell align="right" className="font-bold text-gray-700">
+                  Amount
+                </TableCell>
+                <TableCell className="font-bold text-gray-700">
+                  Transaction Date
+                </TableCell>
+                <TableCell align="center" className="font-bold text-gray-700">
+                  Actions
+                </TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {dataTransactionInfo.map((dataTransaction) => (
+                <TableRow
+                  key={dataTransaction.id}
+                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                >
+                  {editingRowId === dataTransaction.id && editedRowData ? (
+                    <>
+                      <TableCell>
+                        <TextField
+                          name="transactionName"
+                          value={editedRowData.Transaction_Name}
+                          onChange={handleInputChange}
+                          size="small"
+                          fullWidth
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <TextField
+                          name="email"
+                          value={editedRowData.Transaction_Email}
+                          onChange={handleInputChange}
+                          size="small"
+                          fullWidth
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <TextField
+                          name="amount"
+                          value={editedRowData.Transaction_Amount}
+                          onChange={handleInputChange}
+                          type="number"
+                          size="small"
+                          fullWidth
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                          <DemoContainer components={["DatePicker"]}>
+                            <DatePicker
+                              label="Date"
+                              value={editedRowData.Transaction_Date}
+                              onChange={handleDateChange}
+                              slotProps={{
+                                textField: { size: "small", fullWidth: true },
+                              }}
+                            />
+                          </DemoContainer>
+                        </LocalizationProvider>
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          aria-label="save"
+                          onClick={() => handleSaveClick(dataTransaction.id)}
+                          color="primary"
+                        >
+                          <SaveIcon />
+                        </IconButton>
+                        <IconButton
+                          aria-label="cancel"
+                          onClick={() => handleCancelClick(dataTransaction.id)}
+                          color="inherit"
+                        >
+                          <CancelIcon />
+                        </IconButton>
+                      </TableCell>
+                    </>
+                  ) : (
+                    <>
+                      <TableCell component="th" scope="row">
+                        {dataTransaction.Transaction_Name}
+                      </TableCell>
+                      <TableCell>{dataTransaction.Transaction_Email}</TableCell>
+                      <TableCell align="right">
+                        ${dataTransaction.Transaction_Amount.toFixed(2)}
+                      </TableCell>
+                      <TableCell>
+                        {dataTransaction.Transaction_Date
+                          ? new Date(
+                              dataTransaction.Transaction_Date,
+                            ).toLocaleDateString()
+                          : "N/A"}
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          aria-label="edit"
+                          //onClick={() => handleEditClick(row.id)}
+                          color="info"
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          aria-label="delete"
+                          //onClick={() => handleDeleteClick(row.id)}
+                          color="error"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {/* Add New Row Dialog */}
+        <Dialog
+          open={openAddDialog}
+          onClick={handleOpenAddDialog}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Add New Transaction</DialogTitle>
+          <DialogContent>
+            <Box
+              component="form"
+              sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}
+            >
+              <TextField
+                name="transactionName"
+                label="Transaction Name"
+                value={newRowData.transactionName}
+                onChange={handleNewRowInputChange}
+                fullWidth
+                size="small"
+              />
+              <TextField
+                name="email"
+                label="Email"
+                value={newRowData.email}
+                onChange={handleNewRowInputChange}
+                fullWidth
+                size="small"
+              />
+              <TextField
+                name="amount"
+                label="Amount"
+                type="number"
+                value={newRowData.amount}
+                onChange={handleNewRowInputChange}
+                fullWidth
+                size="small"
+              />
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DemoContainer components={["DatePicker"]}>
+                  <DatePicker
+                    label="Transaction Date"
+                    value={newRowData.transactionDate}
+                    onChange={handleNewRowDateChange}
+                    slotProps={{
+                      textField: { fullWidth: true, size: "small" },
+                    }}
+                  />
+                </DemoContainer>
+              </LocalizationProvider>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseAddDialog} color="inherit">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveNewRow}
+              color="primary"
+              variant="contained"
+            >
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
     </div>
   );
 };

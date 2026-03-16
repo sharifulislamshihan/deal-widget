@@ -53,7 +53,7 @@ export default function App() {
 
   const handleOpenAddDialog = () => {
     setNewRowData(emptyNewRow) // Reset dialog fields
-    setOpenAddDialog(true)
+    setOpenAddDialog(true);
   }
 
   const handleCloseAddDialog = () => {
