@@ -1,164 +1,213 @@
-import { Box, Button, TextField } from "@mui/material";
-import { useEffect, useState } from "react";
-import RelatedQuotes from "./RelatedQuotes";
+import { useCallback, useEffect, useState } from "react";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Skeleton,
+  Snackbar,
+  TextField,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
+import RelatedQuotes from "./quotes/RelatedQuotes";
 import DataTransaction from "./DataTransaction";
+import useSnackbar from "../hooks/useSnackbar";
+
+const SectionHeader = ({ icon, title }) => (
+  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2.5 }}>
+    <Box
+      sx={{
+        bgcolor: "#f3f4f6",
+        color: "#6b7280",
+        borderRadius: "8px",
+        p: 0.75,
+        display: "flex",
+        alignItems: "center",
+      }}
+    >
+      {icon}
+    </Box>
+    <Typography variant="h6">{title}</Typography>
+  </Box>
+);
 
 const DealDetails = ({ moduleName, recordId }) => {
-  console.log(moduleName);
-  console.log(recordId);
-
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [dealName, setDealName] = useState("");
   const [dealId, setDealId] = useState("");
   const [contactName, setContactName] = useState("");
   const [accountName, setAccountName] = useState("");
-  const [Amount, setAmount] = useState("");
+  const [amount, setAmount] = useState("");
   const [relatedQuotes, setRelatedQuotes] = useState({ data: [] });
   const [dataTransaction, setDataTransaction] = useState([]);
 
-  const getQuotes = async () => {
-    if (!moduleName || !recordId) return;
+  const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
 
+  const getQuotes = useCallback(async () => {
+    if (!moduleName || !recordId) return;
     const quotes = await window.ZOHO.CRM.API.getRelatedRecords({
       Entity: moduleName,
       RecordID: recordId,
       RelatedList: "Quotes",
-    }).catch(() => {
-      console.error("Error in get related records");
-    });
-    //console.log("Quotes checking", quotes);
-
-    setRelatedQuotes(quotes);
-  };
-
-  useEffect(() => {
-    if (moduleName && recordId) {
-      window.ZOHO.CRM.API.getRecord({
-        Entity: moduleName,
-        RecordID: recordId,
-      }).then(function (recordData) {
-        console.log("Sub form", recordData.data[0]);
-
-        setDealName(recordData.data[0]?.Deal_Name);
-        setDealId(recordData.data[0]?.id);
-        setContactName(recordData.data[0]?.Contact_Name?.name);
-        setAccountName(recordData.data[0]?.Account_Name?.name);
-        setAmount(recordData.data[0]?.Amount);
-        setDataTransaction(recordData.data[0].Subform_1);
-      });
-
-      getQuotes();
-    }
+    }).catch(() => null);
+    if (quotes) setRelatedQuotes(quotes);
   }, [moduleName, recordId]);
 
-  console.log("Data", dataTransaction);
+  useEffect(() => {
+    if (!moduleName || !recordId) return;
 
-  const handleDealSubmit = async (event) => {
-    event.preventDefault();
-    setIsLoading(true);
+    window.ZOHO.CRM.API.getRecord({
+      Entity: moduleName,
+      RecordID: recordId,
+    }).then((recordData) => {
+      const record = recordData.data[0];
+      setDealName(record?.Deal_Name ?? "");
+      setDealId(record?.id ?? "");
+      setContactName(record?.Contact_Name?.name ?? "");
+      setAccountName(record?.Account_Name?.name ?? "");
+      setAmount(record?.Amount ?? "");
+      setDataTransaction(record?.Subform_1 ?? []);
+      setLoading(false);
+    });
 
-    var configDeal = {
-      Entity: "Deals",
-      APIData: {
-        id: dealId,
-        Deal_Name: dealName,
-        Amount: Amount,
-      },
-      Trigger: [],
-    };
+    getQuotes();
+  }, [moduleName, recordId, getQuotes]);
 
-    await window.ZOHO.CRM.API.updateRecord(configDeal).then(
-      function (dealData) {
-        // console.log(dealData?.data[0]?.code);
-        if (dealData?.data[0]?.code === "SUCCESS") {
-          alert("Deal updated successfully");
-        } else {
-          alert("Error in updating deal");
-        }
-      },
-    );
-
-    handleClose();
+  const handleDealSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const result = await window.ZOHO.CRM.API.updateRecord({
+        Entity: "Deals",
+        APIData: { id: dealId, Deal_Name: dealName, Amount: amount },
+        Trigger: [],
+      });
+      if (result?.data?.[0]?.code === "SUCCESS") {
+        showSnackbar("Deal updated successfully");
+        window.ZOHO.CRM.UI.Popup.closeReload();
+      } else {
+        showSnackbar("Failed to update deal", "error");
+      }
+    } catch {
+      showSnackbar("Error updating deal", "error");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleClose = () => {
-    window.ZOHO.CRM.UI.Popup.closeReload().then(function (data) {
-      console.log(data);
-    });
+    window.ZOHO.CRM.UI.Popup.closeReload();
   };
 
   return (
-    <div>
-      <h3>Deal Details</h3>
-
-      <form onSubmit={handleDealSubmit} id="deal-form">
-        <Box
-          sx={{
-            mb: 2,
-            display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)", // Create 2 equal columns
-            gap: 2, // Spacing between boxes
-          }}
-        >
-          <TextField
-            value={dealName}
-            onChange={(e) => setDealName(e.target.value)}
-            label="Deal Name"
-            type="text"
-            variant="outlined"
-            sx={{ mb: 2 }}
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+      {/* Deal Details Card */}
+      <Card>
+        <CardContent>
+          <SectionHeader
+            icon={<BusinessCenterIcon fontSize="small" />}
+            title="Deal Details"
           />
 
-          <TextField
-            disabled
-            label="Contact Name"
-            type="text"
-            value={contactName}
-            variant="outlined"
-            sx={{ mb: 2 }}
-          />
+          {loading ? (
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gap: 2,
+              }}
+            >
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} variant="rounded" height={40} />
+              ))}
+            </Box>
+          ) : (
+            <form onSubmit={handleDealSubmit} id="deal-form">
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, 1fr)",
+                  gap: 2,
+                }}
+              >
+                <TextField
+                  value={dealName}
+                  onChange={(e) => setDealName(e.target.value)}
+                  label="Deal Name"
+                />
+                <Tooltip title="Read-only field" placement="top">
+                  <TextField
+                    disabled
+                    label="Contact Name"
+                    value={contactName}
+                  />
+                </Tooltip>
+                <Tooltip title="Read-only field" placement="top">
+                  <TextField
+                    disabled
+                    label="Account Name"
+                    value={accountName}
+                  />
+                </Tooltip>
+                <TextField
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  label="Amount"
+                />
+              </Box>
+            </form>
+          )}
+        </CardContent>
+      </Card>
 
-          <TextField
-            disabled
-            value={accountName}
-            label="Account Name"
-            variant="outlined"
-            sx={{ mb: 2 }}
+      {/* Related Quotes Card */}
+      <Card>
+        <CardContent>
+          <SectionHeader
+            icon={<ReceiptLongIcon fontSize="small" />}
+            title="Related Quotes"
           />
-          <TextField
-            id="Amount"
-            value={Amount}
-            onChange={(e) => setAmount(e.target.value)}
-            label="Total amount of Deals"
-            type="text"
-            variant="outlined"
-            sx={{ mb: 2 }}
+          <RelatedQuotes
+            moduleName={moduleName}
+            recordId={recordId}
+            relatedQuotes={relatedQuotes}
+            getQuotes={getQuotes}
           />
-        </Box>
-      </form>
+        </CardContent>
+      </Card>
 
-      <RelatedQuotes
-        moduleName={moduleName}
-        recordId={recordId}
-        relatedQuotes={relatedQuotes}
-        getQuotes={getQuotes}
-      />
-      <form></form>
-      <DataTransaction dataTransaction={dataTransaction} dealId={dealId} />
+      {/* Data Transactions Card */}
+      <Card>
+        <CardContent>
+          <SectionHeader
+            icon={<AccountTreeIcon fontSize="small" />}
+            title="Data Transactions"
+          />
+          <DataTransaction dataTransaction={dataTransaction} dealId={dealId} />
+        </CardContent>
+      </Card>
 
+      {/* Action Buttons */}
       <Box
         sx={{
           display: "flex",
           justifyContent: "flex-end",
-          mt: 3,
+          gap: 1.5,
+          pb: 2,
         }}
       >
         <Button
-          sx={{
-            mr: 2,
-          }}
           variant="outlined"
           onClick={handleClose}
+          disabled={submitting}
+          sx={{ px: 3, borderColor: "#e2e8f0", color: "text.secondary" }}
         >
           Cancel
         </Button>
@@ -166,12 +215,32 @@ const DealDetails = ({ moduleName, recordId }) => {
           variant="contained"
           type="submit"
           form="deal-form"
-          disabled={isLoading}
+          disabled={submitting || loading}
+          sx={{ px: 3 }}
+          startIcon={
+            submitting ? <CircularProgress size={16} color="inherit" /> : null
+          }
         >
-          {isLoading ? "Submitting..." : "Submit"}
+          {submitting ? "Saving..." : "Save Deal"}
         </Button>
       </Box>
-    </div>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={closeSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={closeSnackbar}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ borderRadius: 2 }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 

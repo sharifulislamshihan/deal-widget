@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import {
+  Alert,
   Box,
   Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
+  DialogContentText,
   DialogTitle,
   IconButton,
   Paper,
+  Snackbar,
   Table,
   TableBody,
   TableCell,
@@ -15,12 +19,17 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
+  Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SaveIcon from "@mui/icons-material/Save";
-import CancelIcon from "@mui/icons-material/Close";
+import CloseIcon from "@mui/icons-material/Close";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import InboxIcon from "@mui/icons-material/Inbox";
+import useSnackbar from "../hooks/useSnackbar";
 
 const emptyRow = {
   Transaction_Name: "",
@@ -34,17 +43,18 @@ const DataTransaction = ({ dataTransaction, dealId }) => {
   const [editingRowId, setEditingRowId] = useState(null);
   const [editedRowData, setEditedRowData] = useState(null);
   const [openAddDialog, setOpenAddDialog] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState(null);
   const [newRowData, setNewRowData] = useState(emptyRow);
   const [saving, setSaving] = useState(false);
 
-  // Sync rows when parent data loads
+  const { snackbar, showSnackbar, closeSnackbar } = useSnackbar();
+
   useEffect(() => {
     if (dataTransaction?.length) {
       setRows(dataTransaction);
     }
   }, [dataTransaction]);
 
-  // ── Persist subform to Zoho ──
   const saveSubformToZoho = async (updatedRows) => {
     setSaving(true);
     try {
@@ -62,40 +72,25 @@ const DataTransaction = ({ dataTransaction, dealId }) => {
         },
         Trigger: [],
       });
-
       if (result?.data?.[0]?.code === "SUCCESS") {
-        alert("Transaction saved successfully!");
+        showSnackbar("Transaction saved successfully");
       } else {
-        alert("Failed to save transaction.");
+        showSnackbar("Failed to save transaction", "error");
       }
     } catch {
-      alert("Error saving transaction.");
+      showSnackbar("Error saving transaction", "error");
     } finally {
       setSaving(false);
     }
-  };
-
-  // ── Add Row ──
-  const handleOpenAddDialog = () => {
-    setNewRowData(emptyRow);
-    setOpenAddDialog(true);
-  };
-
-  const handleCloseAddDialog = () => setOpenAddDialog(false);
-
-  const handleNewRowChange = (e) => {
-    const { name, value } = e.target;
-    setNewRowData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSaveNewRow = () => {
     const updatedRows = [...rows, { ...newRowData }];
     setRows(updatedRows);
     saveSubformToZoho(updatedRows);
-    handleCloseAddDialog();
+    setOpenAddDialog(false);
   };
 
-  // ── Inline Edit ──
   const handleEditClick = (index) => {
     setEditingRowId(index);
     setEditedRowData({ ...rows[index] });
@@ -119,62 +114,60 @@ const DataTransaction = ({ dataTransaction, dealId }) => {
     setEditedRowData(null);
   };
 
-  // ── Delete ──
-  const handleDeleteClick = (index) => {
-    if (!window.confirm("Delete this transaction?")) return;
-    const updatedRows = rows.filter((_, i) => i !== index);
+  const handleDeleteConfirm = () => {
+    const updatedRows = rows.filter((_, i) => i !== deleteIndex);
     setRows(updatedRows);
     saveSubformToZoho(updatedRows);
+    setDeleteIndex(null);
   };
 
   return (
     <Box>
+      {/* Table header row */}
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          mb: 1,
+          mb: 2,
         }}
       >
-        <h3>Data Transaction</h3>
+        <Typography variant="body2" color="text.secondary">
+          {rows.length} {rows.length === 1 ? "record" : "records"}
+        </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={handleOpenAddDialog}
+          onClick={() => {
+            setNewRowData(emptyRow);
+            setOpenAddDialog(true);
+          }}
           disabled={saving}
           size="small"
+          sx={{ px: 2 }}
         >
           Add Row
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} size="small" aria-label="transaction table">
-          <TableHead
-            sx={{
-              backgroundColor: "#494343",
-              "& .MuiTableCell-root": {
-                color: "white",
-                fontWeight: "medium",
-              },
-            }}
-          >
+      <TableContainer
+        component={Paper}
+        sx={{ border: "1px solid #e2e8f0", overflow: "hidden" }}
+      >
+        <Table size="small">
+          <TableHead>
             <TableRow>
               <TableCell>Transaction Name</TableCell>
               <TableCell>Email</TableCell>
               <TableCell align="right">Amount</TableCell>
-              <TableCell>Transaction Date</TableCell>
+              <TableCell>Date</TableCell>
               <TableCell align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {rows.length > 0 ? (
               rows.map((row, index) => (
-                <TableRow
-                  key={row.id || index}
-                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                >
+                <TableRow key={row.id || index}>
                   {editingRowId === index && editedRowData ? (
                     <>
                       <TableCell>
@@ -217,50 +210,74 @@ const DataTransaction = ({ dataTransaction, dealId }) => {
                         />
                       </TableCell>
                       <TableCell align="center">
-                        <IconButton
-                          aria-label="save"
-                          onClick={() => handleSaveClick(index)}
-                          color="primary"
-                          disabled={saving}
-                        >
-                          <SaveIcon />
-                        </IconButton>
-                        <IconButton
-                          aria-label="cancel"
-                          onClick={handleCancelClick}
-                          color="inherit"
-                        >
-                          <CancelIcon />
-                        </IconButton>
+                        <Tooltip title="Save">
+                          <IconButton
+                            onClick={() => handleSaveClick(index)}
+                            disabled={saving}
+                            size="small"
+                            sx={{ bgcolor: "#111827", color: "white", mr: 0.5,
+                              "&:hover": { bgcolor: "#374151" } }}
+                          >
+                            {saving ? (
+                              <CircularProgress size={14} color="inherit" />
+                            ) : (
+                              <SaveIcon fontSize="small" />
+                            )}
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Cancel">
+                          <IconButton onClick={handleCancelClick} size="small"
+                            sx={{ bgcolor: "#f1f5f9" }}>
+                            <CloseIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                       </TableCell>
                     </>
                   ) : (
                     <>
-                      <TableCell>{row.Transaction_Name}</TableCell>
-                      <TableCell>{row.Transaction_Email}</TableCell>
-                      <TableCell align="right">
-                        {row.Transaction_Amount}
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={500}>
+                          {row.Transaction_Name}
+                        </Typography>
                       </TableCell>
                       <TableCell>
-                        {row.Transaction_Date || "N/A"}
+                        <Typography variant="body2" color="text.secondary">
+                          {row.Transaction_Email}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2" fontWeight={600} color="text.primary">
+                          {row.Transaction_Amount
+                            ? `$${Number(row.Transaction_Amount).toLocaleString()}`
+                            : "—"}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {row.Transaction_Date || "—"}
+                        </Typography>
                       </TableCell>
                       <TableCell align="center">
-                        <IconButton
-                          aria-label="edit"
-                          onClick={() => handleEditClick(index)}
-                          color="info"
-                          disabled={saving}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          aria-label="delete"
-                          onClick={() => handleDeleteClick(index)}
-                          color="error"
-                          disabled={saving}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
+                        <Tooltip title="Edit">
+                          <IconButton
+                            onClick={() => handleEditClick(index)}
+                            disabled={saving}
+                            size="small"
+                            sx={{ color: "#374151", "&:hover": { bgcolor: "#f3f4f6" } }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton
+                            onClick={() => setDeleteIndex(index)}
+                            disabled={saving}
+                            size="small"
+                            sx={{ color: "#6b7280", "&:hover": { bgcolor: "#f3f4f6", color: "#dc2626" } }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                       </TableCell>
                     </>
                   )}
@@ -268,8 +285,24 @@ const DataTransaction = ({ dataTransaction, dealId }) => {
               ))
             ) : (
               <TableRow>
-                <TableCell align="center" colSpan={5}>
-                  No transactions available.
+                <TableCell colSpan={5} sx={{ border: 0 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      py: 5,
+                      gap: 1,
+                    }}
+                  >
+                    <InboxIcon sx={{ fontSize: 40, color: "#cbd5e1" }} />
+                    <Typography variant="body2" color="text.secondary">
+                      No transactions yet
+                    </Typography>
+                    <Typography variant="caption" color="text.disabled">
+                      Click "Add Row" to get started
+                    </Typography>
+                  </Box>
                 </TableCell>
               </TableRow>
             )}
@@ -277,70 +310,121 @@ const DataTransaction = ({ dataTransaction, dealId }) => {
         </Table>
       </TableContainer>
 
-      {/* Add New Transaction Dialog */}
+      {/* Add Transaction Dialog */}
       <Dialog
         open={openAddDialog}
-        onClose={handleCloseAddDialog}
+        onClose={() => setOpenAddDialog(false)}
         maxWidth="sm"
         fullWidth
       >
         <DialogTitle>Add New Transaction</DialogTitle>
         <DialogContent>
-          <Box
-            component="form"
-            sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}
-          >
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
             <TextField
-              name="Transaction_Name"
               label="Transaction Name"
               value={newRowData.Transaction_Name}
-              onChange={handleNewRowChange}
+              onChange={(e) =>
+                setNewRowData((p) => ({ ...p, Transaction_Name: e.target.value }))
+              }
               fullWidth
-              size="small"
             />
             <TextField
-              name="Transaction_Email"
               label="Email"
+              type="email"
               value={newRowData.Transaction_Email}
-              onChange={handleNewRowChange}
+              onChange={(e) =>
+                setNewRowData((p) => ({ ...p, Transaction_Email: e.target.value }))
+              }
               fullWidth
-              size="small"
             />
             <TextField
-              name="Transaction_Amount"
               label="Amount"
               type="number"
               value={newRowData.Transaction_Amount}
-              onChange={handleNewRowChange}
+              onChange={(e) =>
+                setNewRowData((p) => ({ ...p, Transaction_Amount: e.target.value }))
+              }
               fullWidth
-              size="small"
             />
             <TextField
-              name="Transaction_Date"
               label="Transaction Date"
               type="date"
               value={newRowData.Transaction_Date}
-              onChange={handleNewRowChange}
+              onChange={(e) =>
+                setNewRowData((p) => ({ ...p, Transaction_Date: e.target.value }))
+              }
               fullWidth
-              size="small"
               slotProps={{ inputLabel: { shrink: true } }}
             />
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseAddDialog} color="inherit">
+          <Button onClick={() => setOpenAddDialog(false)} color="inherit">
             Cancel
           </Button>
-          <Button
-            onClick={handleSaveNewRow}
-            color="primary"
-            variant="contained"
-            disabled={saving}
-          >
-            {saving ? "Saving..." : "Save"}
+          <Button onClick={handleSaveNewRow} variant="contained" disabled={saving}>
+            {saving ? "Saving..." : "Save Transaction"}
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Delete Confirm Dialog */}
+      <Dialog
+        open={deleteIndex !== null}
+        onClose={() => setDeleteIndex(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <Box
+              sx={{
+                bgcolor: "#fef2f2",
+                color: "#ef4444",
+                borderRadius: "8px",
+                p: 0.75,
+                display: "flex",
+              }}
+            >
+              <WarningAmberIcon fontSize="small" />
+            </Box>
+            Delete Transaction?
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteIndex(null)} color="inherit">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
+            variant="contained"
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={closeSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={closeSnackbar}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ borderRadius: 2 }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
