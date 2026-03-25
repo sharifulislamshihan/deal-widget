@@ -8,12 +8,9 @@ function App() {
   const [recordId, setRecordId] = useState("");
   const [moduleName, setModuleName] = useState("");
   useEffect(() => {
-    /*
-     * Subscribe to the EmbeddedApp onPageLoad event before initializing
-     */
 
     window.ZOHO.embeddedApp.on("PageLoad", function (data) {
-      //console.log(data);
+      console.log(data);
       setRecordId(data["EntityId"][0]);
       setModuleName(data?.Entity);
     });
@@ -29,7 +26,7 @@ function App() {
         approved: "both",
         RecordID: recordId,
       }).then(function (data) {
-       // console.log(data);
+        console.log(data);
       });
 
       window.ZOHO.CRM.UI.Resize({
@@ -41,8 +38,8 @@ function App() {
     }
   }, [zohoLoaded, recordId, moduleName]);
 
-  //console.log(recordId);
-  //console.log(moduleName);
+  console.log(recordId);
+  console.log(moduleName);
 
   return (
     <div>

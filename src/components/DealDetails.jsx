@@ -4,6 +4,9 @@ import RelatedQuotes from "./RelatedQuotes";
 import DataTransaction from "./DataTransaction";
 
 const DealDetails = ({ moduleName, recordId }) => {
+  console.log(moduleName);
+  console.log(recordId);
+
   const [isLoading, setIsLoading] = useState(false);
   const [dealName, setDealName] = useState("");
   const [dealId, setDealId] = useState("");
@@ -23,7 +26,7 @@ const DealDetails = ({ moduleName, recordId }) => {
     }).catch(() => {
       console.error("Error in get related records");
     });
-    // console.log("Quotes checking", quotes);
+    //console.log("Quotes checking", quotes);
 
     setRelatedQuotes(quotes);
   };
@@ -34,7 +37,7 @@ const DealDetails = ({ moduleName, recordId }) => {
         Entity: moduleName,
         RecordID: recordId,
       }).then(function (recordData) {
-        // console.log(recordData.data[0].Subform_1);
+        console.log("Sub form", recordData.data[0]);
 
         setDealName(recordData.data[0]?.Deal_Name);
         setDealId(recordData.data[0]?.id);
@@ -48,8 +51,7 @@ const DealDetails = ({ moduleName, recordId }) => {
     }
   }, [moduleName, recordId]);
 
-  console.log("Data",dataTransaction);
-  
+  console.log("Data", dataTransaction);
 
   const handleDealSubmit = async (event) => {
     event.preventDefault();
@@ -141,9 +143,8 @@ const DealDetails = ({ moduleName, recordId }) => {
         relatedQuotes={relatedQuotes}
         getQuotes={getQuotes}
       />
-
-      <DataTransaction dataTransactions={dataTransaction}/>
       <form></form>
+      <DataTransaction dataTransaction={dataTransaction} dealId={dealId} />
 
       <Box
         sx={{
